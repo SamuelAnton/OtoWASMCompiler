@@ -1,0 +1,9 @@
+class A is {
+    <constructor>
+}
+end
+
+class B extends A is {
+    <constructor>
+}
+end

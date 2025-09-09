@@ -1,0 +1,6 @@
+class A is {
+    this is
+        var a : 
+    end
+}
+end
