@@ -15,7 +15,11 @@ public enum Token {
     tkAssignment2(":="), // := Example: n := v
     tkWhile("while"), // while
     tkLoop("loop"), // loop
-
+    tkIf("if"), // if
+    tkOpenCircle("("), // (
+    tkCloseCircle(")"), // )
+    tkTkOpenSquare("["), // [
+    tkCloseSquare("]"), // ]
     ;
     public final String label;
     Token(String label) {
