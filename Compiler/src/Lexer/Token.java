@@ -6,4 +6,8 @@ public enum Token {
     tkIs, // is
     tkEnd, // end
     tkReturn, // return
+    tkThis, // this
+    tkMethod, // method
+    tkShortBody, // =>
+
 }
