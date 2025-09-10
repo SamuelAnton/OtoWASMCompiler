@@ -1,10 +1,12 @@
 package Lexer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Lexer {
     String fileText;
     int filePointer = -1;
+    final HashMap<String, NamedToken> tokenMap = new HashMap<>();
 
     char nextChar() {
         if (!isFileEnd())
@@ -20,6 +22,25 @@ public class Lexer {
             switch (nextChar) {
                 case ' ':
                 case '.':
+                case '\n':
+                case '\r':
+                case '\t':
+                case '(':
+                case ')':
+                case '[':
+                case ']':
+                case ':':
+                case ',':
+                    if (word.isEmpty()) {
+                        if (nextChar == ':') {
+                            if (!isFileEnd()) {
+                                if (nextChar() == '=') {
+                                    return ":=";
+                                }
+                            }
+                        }
+                        return word.append(nextChar).toString();
+                    }
                     stop = true;
                     backChar();
                     break;
@@ -71,11 +92,21 @@ public class Lexer {
         return (filePointer == fileText.length() - 1);
     }
 
-    ArrayList<Token> process(String file) {
+    void fillMap() {
+        for (Token t : Token.values()) {
+            if (t == Token.tkIdentifier) {
+                continue;
+            }
+            tokenMap.put(t.label, new NamedToken(t));
+        }
+    }
+
+    ArrayList<NamedToken> process(String file) {
+        fillMap();
         fileText = file;
-        ArrayList<Token> tokens = new ArrayList<>();
+        ArrayList<NamedToken> tokens = new ArrayList<>();
         while (true) {
-            Token nextToken = nextToken();
+            NamedToken nextToken = nextToken();
             if (nextToken == null)
                 break;
             tokens.add(nextToken);
@@ -83,25 +114,52 @@ public class Lexer {
         return tokens;
     }
 
-    Token nextToken() {
+    NamedToken nextToken() {
         if (isFileEnd())
             return null;
-        switch (nextWord()) {
+        String word = nextWord();
+        switch (word) {
             case "class":
-                return Token.tkClass;
             case "is":
-                return Token.tkIs;
             case "end":
-                return Token.tkEnd;
             case "return":
-                return Token.tkReturn;
-            case " ":
-            case "\n":
-                break;
+            case "this":
+            case "method":
+            case "=>":
+            case "extends":
+            case ":":
+            case ".":
+            case ":=":
+            case "while":
+            case "loop":
+            case "if":
+            case "else":
+            case "(":
+            case ")":
+            case "[":
+            case "]":
+            case "var":
+            case ",":
+                return tokenMap.get(word);
+            case "//":
+                while (true) {
+                    if (nextChar() == '\n') {
+                        break;
+                    }
+                }
             case "":
                 nextChar();
-            default:
+            case " ":
+            case "\n":
+            case "\r":
+            case "\t":
                 break;
+            default:
+                if (tokenMap.containsKey(word)) {
+                    return tokenMap.get(word);
+                }
+                tokenMap.put(word, new NamedToken(word));
+                return tokenMap.get(word);
         }
         return nextToken();
     }

@@ -1,7 +1,8 @@
 package Lexer;
 
 public enum Token {
-    tkIdentifier("var"), // user's var
+    tkIdentifier(""), // Users variable
+    tkVar("var"), // var
     tkClass("class"), // class
     tkIs("is"), // is
     tkEnd("end"), // end
@@ -21,8 +22,11 @@ public enum Token {
     tkCloseCircle(")"), // )
     tkOpenSquare("["), // [
     tkCloseSquare("]"), // ]
+    tkComma(","), // ,
     ;
+
     public final String label;
+
     Token(String label) {
         this.label = label;
     }
