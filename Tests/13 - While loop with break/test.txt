@@ -1,0 +1,16 @@
+class Tester is
+    method firstEven(limit: Integer) : Integer is
+        var i : Integer(0)
+        while i.Less(limit) loop
+            if i.Rem(Integer(2)).Equal(Integer(0)) then
+                return i
+            end
+            i := i.Plus(Integer(1))
+        end
+        return Integer(-1)
+    end
+
+    this() is
+        this.firstEven(Integer(10))
+    end
+end
