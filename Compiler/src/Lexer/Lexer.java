@@ -94,8 +94,30 @@ public class Lexer {
                     backWord();
                 nextChar();
                 break;
+            case 'i':
+                if (nextWord().equals("s"))
+                    return Token.tkIs;
+                else
+                    backWord();
+                nextChar();
+                break;
+            case 'e':
+                if (nextWord().equals("nd"))
+                    return Token.tkEnd;
+                else
+                    backWord();
+                nextChar();
+                break;
+            case 'r':
+                if (nextWord().equals("eturn"))
+                    return Token.tkReturn;
+                else
+                    backWord();
+                nextChar();
+                break;
             case ' ':
             case '\n':
+                break;
             default:
                 break;
         }
