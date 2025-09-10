@@ -18,7 +18,7 @@ public enum Token {
     tkIf("if"), // if
     tkOpenCircle("("), // (
     tkCloseCircle(")"), // )
-    tkTkOpenSquare("["), // [
+    tkOpenSquare("["), // [
     tkCloseSquare("]"), // ]
     ;
     public final String label;
