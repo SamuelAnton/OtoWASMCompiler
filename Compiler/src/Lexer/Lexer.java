@@ -86,38 +86,20 @@ public class Lexer {
     Token nextToken() {
         if (isFileEnd())
             return null;
-        switch (nextChar()) {
-            case 'c':
-                if (nextWord().equals("lass"))
-                    return Token.tkClass;
-                else
-                    backWord();
+        switch (nextWord()) {
+            case "class":
+                return Token.tkClass;
+            case "is":
+                return Token.tkIs;
+            case "end":
+                return Token.tkEnd;
+            case "return":
+                return Token.tkReturn;
+            case " ":
+            case "\n":
+                break;
+            case "":
                 nextChar();
-                break;
-            case 'i':
-                if (nextWord().equals("s"))
-                    return Token.tkIs;
-                else
-                    backWord();
-                nextChar();
-                break;
-            case 'e':
-                if (nextWord().equals("nd"))
-                    return Token.tkEnd;
-                else
-                    backWord();
-                nextChar();
-                break;
-            case 'r':
-                if (nextWord().equals("eturn"))
-                    return Token.tkReturn;
-                else
-                    backWord();
-                nextChar();
-                break;
-            case ' ':
-            case '\n':
-                break;
             default:
                 break;
         }
