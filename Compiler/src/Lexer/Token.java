@@ -9,5 +9,6 @@ public enum Token {
     tkThis, // this
     tkMethod, // method
     tkShortBody, // =>
-
+    tkExtends, // extends
+    tkAssignment, // : (var x : Animal())
 }
