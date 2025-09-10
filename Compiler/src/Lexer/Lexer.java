@@ -1,19 +1,18 @@
 package Lexer;
 
+import java.util.ArrayList;
+
 public class Lexer {
-    static String fileText;
-    static int filePointer = -1;
+    String fileText;
+    int filePointer = -1;
 
-    public static void main(String[] args) {
-        // TODO: Args check
-    }
-
-    static char nextChar() {
-        filePointer += 1;
+    char nextChar() {
+        if (!isFileEnd())
+            filePointer += 1;
         return fileText.charAt(filePointer);
     }
 
-    static String nextWord() {
+    String nextWord() {
         StringBuilder word = new StringBuilder();
         boolean stop = false;
         while (true) {
@@ -31,17 +30,19 @@ public class Lexer {
             if (stop) {
                 break;
             }
+            if (isFileEnd())
+                break;
         }
         return word.toString();
     }
 
-    static char backChar() {
+    char backChar() {
         if (filePointer != 0)
             filePointer -= 1;
         return fileText.charAt(filePointer);
     }
 
-    static void backWord() {
+    void backWord() {
         boolean stop = false;
         while (true) {
             if (filePointer == 0) {
@@ -61,17 +62,43 @@ public class Lexer {
         }
     }
 
-    static String fullWord() {
+    String fullWord() {
         backWord();
         return nextWord();
     }
 
-    void process() {
-        // TODO: Cycle to process file
+    boolean isFileEnd() {
+        return (filePointer == fileText.length() - 1);
     }
 
-    Token nexToken() {
-        // TODO: FSM like switch to construct token
-        return null;
+    void process(String file) {
+        fileText = file;
+        ArrayList<Token> tokens = new ArrayList<>();
+        while (true) {
+            Token nextToken = nextToken();
+            if (nextToken == null)
+                break;
+            tokens.add(nextToken);
+            System.out.println(nextToken.toString());
+        }
+    }
+
+    Token nextToken() {
+        if (isFileEnd())
+            return null;
+        switch (nextChar()) {
+            case 'c':
+                if (nextWord().equals("lass"))
+                    return Token.tkClass;
+                else
+                    backWord();
+                nextChar();
+                break;
+            case ' ':
+            case '\n':
+            default:
+                break;
+        }
+        return nextToken();
     }
 }
