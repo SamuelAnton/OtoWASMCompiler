@@ -13,6 +13,8 @@ public enum Token {
     tkAssignment1(":"), // : Example: (var x : Animal())
     tkCall("."), // . Example: c.get()
     tkAssignment2(":="), // := Example: n := v
+    tkWhile("while"), // while
+    tkLoop("loop"), // loop
 
     ;
     public final String label;
