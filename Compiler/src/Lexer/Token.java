@@ -16,6 +16,7 @@ public enum Token {
     tkWhile("while"), // while
     tkLoop("loop"), // loop
     tkIf("if"), // if
+    tkElse("else"), // else
     tkOpenCircle("("), // (
     tkCloseCircle(")"), // )
     tkOpenSquare("["), // [
