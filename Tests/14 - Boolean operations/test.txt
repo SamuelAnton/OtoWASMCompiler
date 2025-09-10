@@ -1,0 +1,10 @@
+class Tester is
+    this() is
+        var a : Boolean(true)
+        var b : Boolean(false)
+        var r1 : Boolean(a.And(b)) // false
+        var r2 : Boolean(a.Or(b)) // true
+        var r3 : Boolean(a.Xor(b)) // true
+        var r4 : Boolean(a.Not) // false
+    end
+end

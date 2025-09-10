@@ -1,0 +1,6 @@
+class Tester is
+    this() is
+        var l : List[Integer](Integer(5), Integer(2))
+        var h : Integer(l.head())
+    end
+end
