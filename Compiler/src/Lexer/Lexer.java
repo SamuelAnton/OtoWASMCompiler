@@ -71,7 +71,7 @@ public class Lexer {
         return (filePointer == fileText.length() - 1);
     }
 
-    void process(String file) {
+    ArrayList<Token> process(String file) {
         fileText = file;
         ArrayList<Token> tokens = new ArrayList<>();
         while (true) {
@@ -79,8 +79,8 @@ public class Lexer {
             if (nextToken == null)
                 break;
             tokens.add(nextToken);
-            System.out.println(nextToken.toString());
         }
+        return tokens;
     }
 
     Token nextToken() {
