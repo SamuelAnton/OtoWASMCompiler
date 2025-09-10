@@ -1,9 +1,23 @@
-class A is {
-    <constructor>
-}
+class Animal is
+    method sound() => 1
 end
 
-class B extends A is {
-    <constructor>
-}
+class Dog extends Animal is
+    method sound() => 2
+end
+
+class Polymorphism is
+    method polymorphism(a : Animal) is
+        a.sound()
+    end
+end
+
+class Tester is
+    this() is
+        var x : Animal()
+        var y : Dog()
+        var z : Polymorphism()
+        z.polymorphism(x)
+        z.polymorphism(y)
+    end
 end

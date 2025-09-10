@@ -1,0 +1,12 @@
+class Counter is
+    var value : Integer(0)
+
+    method get() : Integer => value
+end
+
+class Tester is
+    this() is
+        var c : Counter()
+        c.get()
+    end
+end

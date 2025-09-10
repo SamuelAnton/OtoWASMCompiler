@@ -1,6 +1,5 @@
-class A is {
-    this is
-        var a : 
+class A is
+    this() is
+        return
     end
-}
 end

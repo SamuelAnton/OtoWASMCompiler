@@ -1,0 +1,12 @@
+class Calc is
+    method sum(a: Integer, b: Integer) : Integer => a.Plus(b)
+    method sum(a: Real, b: Real) : Real => a.Plus(b)
+end
+
+class Tester is
+    this() is
+        var c : Calc()
+        c.sum(Integer(1), Integer(2))
+        c.sum(Real(1.5), Real(2.5))
+    end
+end

@@ -1,0 +1,9 @@
+class Tester is
+    this(flag: Boolean) is
+        if flag then
+            return
+        else
+            return
+        end
+    end
+end
