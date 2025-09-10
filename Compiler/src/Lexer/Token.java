@@ -10,5 +10,6 @@ public enum Token {
     tkMethod, // method
     tkShortBody, // =>
     tkExtends, // extends
-    tkAssignment, // : (var x : Animal())
+    tkAssignment, // : Example: (var x : Animal())
+    tkCall, // . Example: c.get()
 }
