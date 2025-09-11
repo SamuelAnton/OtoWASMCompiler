@@ -1,5 +1,6 @@
 package Lexer;
 
+// Token with additional string for user's identifiers
 public class NamedToken {
     public Token token;
     public String identifier;

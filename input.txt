@@ -1,4 +1,5 @@
 class Tester is
+    var a : Boolean
     this() is
         var a : Boolean(true)
         var b : Boolean(false)
@@ -7,4 +8,12 @@ class Tester is
         var r3 : Boolean(a.Xor(b)) // true
         var r4 : Boolean(a.Not) // false
     end
+end
+
+class Mine extends Tester is
+    method getA(b : Boolean) is
+        var c := b
+        return this.a
+    end
+    method double(x : Integer) : Integer => x.plus(x)
 end

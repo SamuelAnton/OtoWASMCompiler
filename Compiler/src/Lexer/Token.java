@@ -1,5 +1,6 @@
 package Lexer;
 
+// Enum for different tokens
 public enum Token {
     tkIdentifier(""), // Users variable
     tkVar("var"), // var
@@ -11,9 +12,9 @@ public enum Token {
     tkMethod("method"), // method
     tkShortBody("=>"), // =>
     tkExtends("extends"), // extends
-    tkAssignment1(":"), // : Example: (var x : Animal())
+    tkColumn(":"), // : Example: (var x : Animal())
     tkCall("."), // . Example: c.get()
-    tkAssignment2(":="), // := Example: n := v
+    tkAssignment(":="), // := Example: n := v
     tkWhile("while"), // while
     tkLoop("loop"), // loop
     tkIf("if"), // if
@@ -25,6 +26,7 @@ public enum Token {
     tkComma(","), // ,
     ;
 
+    // Label to automate HashMap fill
     public final String label;
 
     Token(String label) {

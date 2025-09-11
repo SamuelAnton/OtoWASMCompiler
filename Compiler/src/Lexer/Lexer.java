@@ -3,23 +3,30 @@ package Lexer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// Lexic analyzer
 public class Lexer {
-    String fileText;
-    int filePointer = -1;
-    final HashMap<String, NamedToken> tokenMap = new HashMap<>();
+    // Text of the program
+    private String fileText;
+    // Pointer in the text
+    private int filePointer = -1;
+    // Map to reduce number of NamedToken objects
+    private final HashMap<String, NamedToken> tokenMap = new HashMap<>();
 
-    char nextChar() {
+    // Get next character from program text
+    private char nextChar() {
         if (!isFileEnd())
             filePointer += 1;
         return fileText.charAt(filePointer);
     }
 
-    String nextWord() {
+    // Construct next word from program text
+    private String nextWord() {
         StringBuilder word = new StringBuilder();
         boolean stop = false;
         while (true) {
             char nextChar = nextChar();
             switch (nextChar) {
+                // Symbols, that shows word end
                 case ' ':
                 case '.':
                 case '\n':
@@ -31,7 +38,9 @@ public class Lexer {
                 case ']':
                 case ':':
                 case ',':
+                    // deal with operations signs
                     if (word.isEmpty()) {
+                        // Deal with ":" and ":="
                         if (nextChar == ':') {
                             if (!isFileEnd()) {
                                 if (nextChar() == '=') {
@@ -41,9 +50,11 @@ public class Lexer {
                         }
                         return word.append(nextChar).toString();
                     }
+                    // Stop the builder
                     stop = true;
                     backChar();
                     break;
+                // Build word
                 default:
                     word.append(nextChar);
                     break;
@@ -57,42 +68,20 @@ public class Lexer {
         return word.toString();
     }
 
-    char backChar() {
+    // Make program text pointer go back for 1 character
+    private char backChar() {
         if (filePointer != 0)
             filePointer -= 1;
         return fileText.charAt(filePointer);
     }
 
-    void backWord() {
-        boolean stop = false;
-        while (true) {
-            if (filePointer == 0) {
-                filePointer = -1;
-                break;
-            }
-            switch (backChar()) {
-                case ' ':
-                case '.':
-                    stop = true;
-                    nextChar();
-                    break;
-            }
-            if (stop) {
-                break;
-            }
-        }
-    }
-
-    String fullWord() {
-        backWord();
-        return nextWord();
-    }
-
-    boolean isFileEnd() {
+    // Check if pointer gone through full program text
+    private boolean isFileEnd() {
         return (filePointer == fileText.length() - 1);
     }
 
-    void fillMap() {
+    // Function to fill Tokens map with predefined key words
+    private void fillMap() {
         for (Token t : Token.values()) {
             if (t == Token.tkIdentifier) {
                 continue;
@@ -101,10 +90,12 @@ public class Lexer {
         }
     }
 
-    ArrayList<NamedToken> process(String file) {
-        fillMap();
-        fileText = file;
+    // Start Lexer work
+    public ArrayList<NamedToken> process(String file) {
+        fillMap(); // Fill tokens map
+        fileText = file; // Save program text
         ArrayList<NamedToken> tokens = new ArrayList<>();
+        // Collect token by token
         while (true) {
             NamedToken nextToken = nextToken();
             if (nextToken == null)
@@ -114,11 +105,13 @@ public class Lexer {
         return tokens;
     }
 
+    // Get next token
     NamedToken nextToken() {
         if (isFileEnd())
             return null;
         String word = nextWord();
         switch (word) {
+            // Program key words
             case "class":
             case "is":
             case "end":
@@ -141,19 +134,23 @@ public class Lexer {
             case "var":
             case ",":
                 return tokenMap.get(word);
+            // Skip comment
             case "//":
                 while (true) {
                     if (nextChar() == '\n') {
                         break;
                     }
                 }
+                // Skip empty symbols
             case "":
                 nextChar();
+                // Skip "empty" symbols
             case " ":
             case "\n":
             case "\r":
             case "\t":
                 break;
+            // Detect identifier
             default:
                 if (tokenMap.containsKey(word)) {
                     return tokenMap.get(word);
@@ -161,6 +158,7 @@ public class Lexer {
                 tokenMap.put(word, new NamedToken(word));
                 return tokenMap.get(word);
         }
+        // Return next token, to skip useless "empty" symbols
         return nextToken();
     }
 }
