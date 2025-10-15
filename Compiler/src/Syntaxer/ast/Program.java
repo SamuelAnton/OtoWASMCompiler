@@ -1,16 +1,14 @@
 package Syntaxer.ast;
 
-import java.util.ArrayList;
+import Syntaxer.ast.declaration.ClassDeclaration;
 
+import java.util.List;
 
-public class Program {
-    private ArrayList<ClassDecl> classes;
+public class Program extends ASTNode {
+    public final List<ClassDeclaration> classes;
 
-    public Program(ArrayList<ClassDecl> classes) {
+    public Program(List<ClassDeclaration> classes) {
+        super(-1, -1);
         this.classes = classes;
-    }
-
-    public ArrayList<ClassDecl> getClasses() {
-        return classes;
     }
 }
