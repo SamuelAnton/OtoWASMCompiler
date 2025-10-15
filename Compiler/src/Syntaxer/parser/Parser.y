@@ -97,7 +97,7 @@ ClassDeclarations
     ;
 
 ClassDeclaration
-    : CLASS IDENTIFIER Extension IS ClassBody END {$$ = new ClassDecl($2, $3, $5);}
+    : CLASS IDENTIFIER Extension IS ClassBody END {$$ = new ClassDeclaration($2, $3, $5);}
     ;
 
 Extension
@@ -110,8 +110,8 @@ ClassBody
     ;
 
 ClassMembers
-    :
-    | ClassMember              {$$ = new ArrayList<>();}
+    :                          {$$ = new ArrayList<>();}
+    | ClassMember              {$$ = new ArrayList<>(); $$.add($1);}
     | ClassMember ClassMembers {
         $$ = new ArrayList<>();
         $$.add($1);
@@ -153,8 +153,8 @@ Parameter
     ;
 
 ReturnType
-    :                   {$$ = new Type("void");}
-    | COLUMN IDENTIFIER {$$ = new Type($2);}
+    :                   {$$ = null;}
+    | COLUMN IDENTIFIER {$$ = $2;}
     ;
 
 MethodBody
