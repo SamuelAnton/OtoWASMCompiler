@@ -183,7 +183,7 @@ Statement
     | IfStatement      {$$ = $1;}
     | whileStatement   {$$ = $1;}
     | ReturnStatement  {$$ = $1;}
-    | callStatement    {$$ = new ExpressionStatement($1);}
+    | callStatement    {$$ = $1;}
     ;
 
 Assignment
@@ -219,8 +219,8 @@ callStatement
     ;
 
 ArgumentList
-    :                    Expression
-    | ArgumentList COMMA Expression
+    :                    Expression {$$ = new ArrayList<>(); $$.add($1);}
+    | ArgumentList COMMA Expression {$1.add($3); $$ = $1;}
     ;
 
 Expression
