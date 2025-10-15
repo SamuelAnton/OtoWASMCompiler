@@ -1,19 +1,20 @@
 package Syntaxer.ast.statement;
 
 import Syntaxer.ast.ASTVisitor;
-import Syntaxer.ast.component.Block;
 import Syntaxer.ast.expression.Expression;
+
+import java.util.List;
 
 public final class IfStatement extends Statement {
     public final Expression cond;
-    public final Block thenBlock;
-    public final Block elseBlock;
+    public final List<Statement> thenBody;
+    public final List<Statement> elseBody;
 
-    public IfStatement(Expression cond, Block thenBlock, Block elseBlock) {
+    public IfStatement(Expression cond, List<Statement> thenBlock, List<Statement> elseBody) {
         super();
         this.cond = cond;
-        this.thenBlock = thenBlock;
-        this.elseBlock = elseBlock;
+        this.thenBody = thenBlock;
+        this.elseBody = elseBody;
     }
 
     @Override

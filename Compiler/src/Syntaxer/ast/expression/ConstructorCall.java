@@ -6,11 +6,12 @@ import java.util.List;
 
 public final class ConstructorCall extends Expression {
     public final String className;
-    public final List<Expression> arguments;
+    public final List<Expression> args;
 
-    public ConstructorCall(String className, List<Expression> arguments) {
+    public ConstructorCall(String className, List<Expression> args) {
+        super(-1, -1);
         this.className = className;
-        this.arguments = arguments;
+        this.args = args;
     }
 
     @Override

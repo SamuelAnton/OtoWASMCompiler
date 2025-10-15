@@ -8,6 +8,7 @@ public final class FieldDeclaration extends MemberDeclaration {
     public final Expression init;
 
     public FieldDeclaration(String name, Expression init) {
+        super();
         this.name = name;
         this.init = init;
     }

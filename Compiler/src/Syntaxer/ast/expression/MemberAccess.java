@@ -4,11 +4,12 @@ import Syntaxer.ast.ASTVisitor;
 
 public final class MemberAccess extends Expression {
     public final Expression target;
-    public final String memberName;
+    public final Expression member;
 
-    public MemberAccess(Expression target, String memberName) {
+    public MemberAccess(Expression target, Expression member) {
+        super(-1, -1);
         this.target = target;
-        this.memberName = memberName;
+        this.member = member;
     }
 
     @Override

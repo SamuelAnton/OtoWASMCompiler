@@ -1,14 +1,16 @@
 package Syntaxer.ast.statement;
 
 import Syntaxer.ast.ASTVisitor;
-import Syntaxer.ast.component.Block;
 import Syntaxer.ast.expression.Expression;
+
+import java.util.List;
 
 public final class WhileStatement extends Statement {
     public final Expression cond;
-    public final Block body;
+    public final List<Statement> body;
 
-    public WhileStatement(Expression cond, Block body) {
+    public WhileStatement(Expression cond, List<Statement> body) {
+        super();
         this.cond = cond;
         this.body = body;
     }

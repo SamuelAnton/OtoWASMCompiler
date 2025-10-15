@@ -5,12 +5,12 @@ import Syntaxer.ast.ASTVisitor;
 
 public final class Param extends ASTNode {
     public final String name;
-    public final String typeName;
+    public final String type;
 
-    public Param(String name, String typeName) {
+    public Param(String name, String type) {
         super(-1, -1);
         this.name = name;
-        this.typeName = typeName;
+        this.type = type;
     }
 
     @Override

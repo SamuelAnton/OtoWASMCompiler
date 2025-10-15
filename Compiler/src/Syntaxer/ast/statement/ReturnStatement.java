@@ -7,6 +7,7 @@ public final class ReturnStatement extends Statement {
     public final Expression value;
 
     public ReturnStatement(Expression value) {
+        super();
         this.value = value;
     }
 

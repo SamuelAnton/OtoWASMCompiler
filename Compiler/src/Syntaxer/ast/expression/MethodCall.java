@@ -6,13 +6,12 @@ import java.util.List;
 
 public final class MethodCall extends Expression {
     public final Expression target;
-    public final String methodName;
-    public final List<Expression> arguments;
+    public final List<Expression> args;
 
-    public MethodCall(Expression target, String methodName, List<Expression> arguments) {
+    public MethodCall(Expression target, List<Expression> args) {
+        super(-1, -1);
         this.target = target;
-        this.methodName = methodName;
-        this.arguments = arguments;
+        this.args = args;
     }
 
     @Override
