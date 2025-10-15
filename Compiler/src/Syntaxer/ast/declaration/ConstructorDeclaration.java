@@ -1,8 +1,8 @@
 package Syntaxer.ast.declaration;
 
+import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.component.Block;
 import Syntaxer.ast.component.Param;
-import Syntaxer.ast.expression.MemberDeclaration;
 
 import java.util.List;
 
@@ -14,5 +14,10 @@ public final class ConstructorDeclaration extends MemberDeclaration {
         super();
         this.params = params;
         this.body = body;
+    }
+
+    @Override
+    public <R> R accept(ASTVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 }

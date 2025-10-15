@@ -1,7 +1,7 @@
 package Syntaxer.ast.declaration;
 
 import Syntaxer.ast.ASTNode;
-import Syntaxer.ast.expression.MemberDeclaration;
+import Syntaxer.ast.ASTVisitor;
 
 import java.util.List;
 
@@ -15,5 +15,10 @@ public class ClassDeclaration extends ASTNode {
         this.name = name;
         this.baseClass = baseClass;
         this.members = members;
+    }
+
+    @Override
+    public <R> R accept(ASTVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 }

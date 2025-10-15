@@ -1,5 +1,6 @@
 package Syntaxer.ast.statement;
 
+import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.component.Block;
 import Syntaxer.ast.expression.Expression;
 
@@ -13,5 +14,10 @@ public final class IfStatement extends Statement {
         this.cond = cond;
         this.thenBlock = thenBlock;
         this.elseBlock = elseBlock;
+    }
+
+    @Override
+    public <R> R accept(ASTVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 }

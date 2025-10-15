@@ -9,7 +9,5 @@ public abstract class ASTNode {
         this.column = column;
     }
 
-    public <R> R accept(ASTVisitor<R> v) {
-        return null;
-    }
+    public abstract <R> R accept(ASTVisitor<R> visitor);
 }

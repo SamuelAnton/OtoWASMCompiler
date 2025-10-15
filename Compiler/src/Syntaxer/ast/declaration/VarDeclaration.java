@@ -1,16 +1,17 @@
-package Syntaxer.ast.component;
+package Syntaxer.ast.declaration;
 
 import Syntaxer.ast.ASTNode;
 import Syntaxer.ast.ASTVisitor;
+import Syntaxer.ast.expression.Expression;
 
-public final class Param extends ASTNode {
+public class VarDeclaration extends ASTNode {
     public final String name;
-    public final String typeName;
+    public final Expression init;
 
-    public Param(String name, String typeName) {
+    public VarDeclaration(String name, Expression init) {
         super(-1, -1);
         this.name = name;
-        this.typeName = typeName;
+        this.init = init;
     }
 
     @Override

@@ -1,12 +1,20 @@
 package Syntaxer.ast.component;
 
 import Syntaxer.ast.ASTNode;
+import Syntaxer.ast.ASTVisitor;
+import Syntaxer.ast.statement.Statement;
 
-public final class Block extends ASTNode {
-    public final java.util.List<ASTNode> statements;
+import java.util.List;
 
-    public Block(java.util.List<ASTNode> statements) {
-        super(-1, -1);
+public final class Block extends Statement {
+    public final List<ASTNode> statements;
+
+    public Block(List<ASTNode> statements) {
         this.statements = statements;
+    }
+
+    @Override
+    public <R> R accept(ASTVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 }

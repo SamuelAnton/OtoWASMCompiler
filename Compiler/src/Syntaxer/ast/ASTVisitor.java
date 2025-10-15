@@ -4,22 +4,22 @@ import Syntaxer.ast.component.Block;
 import Syntaxer.ast.component.Param;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
-import Syntaxer.ast.expression.CallOrAccess;
-import Syntaxer.ast.expression.MethodDeclaration;
-import Syntaxer.ast.expression.ThisExpression;
-import Syntaxer.ast.expression.VarDeclaration;
+import Syntaxer.ast.declaration.FieldDeclaration;
+import Syntaxer.ast.declaration.VarDeclaration;
+import Syntaxer.ast.expression.*;
+import Syntaxer.ast.declaration.MethodDeclaration;
 import Syntaxer.ast.literal.BoolLiteral;
 import Syntaxer.ast.literal.IntLiteral;
 import Syntaxer.ast.literal.RealLiteral;
-import Syntaxer.ast.statement.Assign;
-import Syntaxer.ast.statement.IfStatement;
-import Syntaxer.ast.statement.WhileStatement;
+import Syntaxer.ast.statement.*;
 
 public interface ASTVisitor<R> {
     // R is return type of visit methods (e.g. Void, String, Type, etc.)
 
     // Top-level
     R visit(Program n);
+
+    R visit(FieldDeclaration n);
 
     R visit(ClassDeclaration n);
 
@@ -31,14 +31,18 @@ public interface ASTVisitor<R> {
 
     R visit(Param n);
 
+    // Statements
     R visit(Block n);
 
-    // Statements
     R visit(Assign n);
 
     R visit(IfStatement n);
 
     R visit(WhileStatement n);
+
+    R visit(ReturnStatement n);
+
+    R visit(AssignmentStatement n);
 
     // Expressions
     R visit(IntLiteral n);
@@ -49,5 +53,11 @@ public interface ASTVisitor<R> {
 
     R visit(ThisExpression n);
 
-    R visit(CallOrAccess n);
+    R visit(VariableReference n);
+
+    R visit(MemberAccess n);
+
+    R visit(MethodCall n);
+
+    R visit(ConstructorCall n);
 }

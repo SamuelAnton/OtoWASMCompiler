@@ -3,12 +3,10 @@ package Syntaxer.ast.statement;
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 
-public final class Assign extends Statement {
-    public final VariableReference target;
+public final class ReturnStatement extends Statement {
     public final Expression value;
 
-    public Assign(VariableReference target, Expression value) {
-        this.target = target;
+    public ReturnStatement(Expression value) {
         this.value = value;
     }
 
