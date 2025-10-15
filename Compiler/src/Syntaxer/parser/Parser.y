@@ -15,13 +15,14 @@ import ast.*;
     MethodDecl methodDecl;
     ConstructorDecl constructorDecl;
     Parameter parameter;
+    Type type;
     Statement statement;
     Expression expression;
-    List<ClassDecl> classDeclList;
-    List<MemberDecl> memberDeclList;
-    List<Parameter> parameterList;
-    List<Statement> statementList;
-    List<Expression> expressionList;
+    ArrayList<ClassDecl> classDeclList;
+    ArrayList<MemberDecl> memberDeclList;
+    ArrayList<Parameter> parameterList;
+    ArrayList<Statement> statementList;
+    ArrayList<Expression> expressionList;
 }
 
 // identifiers & numbers
