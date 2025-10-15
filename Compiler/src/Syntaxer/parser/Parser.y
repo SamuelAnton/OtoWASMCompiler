@@ -28,13 +28,16 @@ import ast.*;
 // identifiers & numbers
 %token IDENTIFIER
 %token NUMBER
+%token REAL_LITERAL
+%token BOOLEAN_LITERAL
+%token STRING_LITERAL 
 
 // keywords
 %token VAR CLASS IS END RETURN THIS METHOD
 %token EXTENDS WHILE LOOP IF ELSE THEN
 
 // delimeters
-%token COLUMN   // :
+%token COLON   // :
 %token DOT      // .
 %token COMMA    // ,
 %token LPAREN   // (
@@ -70,7 +73,7 @@ import ast.*;
 %type <expression> Primary
 %type <expression> CompoundName
 %type <expression> ConstructorInvocation
-%type <expression> CallStatement
+%type <expression> MethodCall
 %type <expressionList> ArgumentList
 
 %start CompilationUnit
@@ -82,7 +85,6 @@ import ast.*;
 CompilationUnit
     : ClassDeclarations {
         $$ = new Program($1);
-        // Set the result for the parser
         parserResult = $$;
       }
     ;
@@ -111,7 +113,6 @@ ClassBody
 
 ClassMembers
     :                          {$$ = new ArrayList<>();}
-    | ClassMember              {$$ = new ArrayList<>(); $$.add($1);}
     | ClassMember ClassMembers {
         $$ = new ArrayList<>();
         $$.add($1);
@@ -126,7 +127,7 @@ ClassMember
     ;
 
 FieldDeclaration
-    : VAR IDENTIFIER COLUMN Expression {$$ = new FieldDecl($2, $4);}
+    : VAR IDENTIFIER COLON Expression {$$ = new FieldDecl($2, $4);}
     | VAR IDENTIFIER IS Expression     {$$ = new FieldDecl($2, $4);}
     ;
 
@@ -135,7 +136,7 @@ MethodDeclaration
     ;
 
 ConstructorDeclaration
-    : THIS Parameters MethodBody {$$ = new ConstructorDecl($2, $4);}
+    : THIS Parameters IS Statements END {$$ = new ConstructorDecl($2, $4);}
     ;
 
 Parameters
@@ -149,12 +150,12 @@ ParameterList
     ;
 
 Parameter
-    : IDENTIFIER COLUMN IDENTIFIER {$$ = new Parameter($1, $3);}
+    : IDENTIFIER COLON IDENTIFIER {$$ = new Parameter($1, $3);}
     ;
 
 ReturnType
     :                   {$$ = null;}
-    | COLUMN IDENTIFIER {$$ = $2;}
+    | COLON IDENTIFIER {$$ = $2;}
     ;
 
 MethodBody
@@ -162,7 +163,7 @@ MethodBody
     | IS Statements END   {$$ = $2;}
     | SHORTBODY Statement {
         // Convert single expression to return statement
-        List<Statement> body = new ArrayList<>();
+        ArrayList<Statement> body = new ArrayList<>();
         body.add(new ReturnStatement($2));
         $$ = body;
       }
@@ -181,9 +182,9 @@ Statement
     : FieldDeclaration {$$ = $1;}
     | Assignment       {$$ = $1;}
     | IfStatement      {$$ = $1;}
-    | whileStatement   {$$ = $1;}
+    | WhileStatement   {$$ = $1;}
     | ReturnStatement  {$$ = $1;}
-    | callStatement    {$$ = $1;}
+    | MethodCall       {$$ = $1;}
     ;
 
 Assignment
@@ -204,7 +205,7 @@ ElseStatement
     | ELSE Statements END {$$ = $2;}
     ;
 
-whileStatement
+WhileStatement
     : WHILE Expression LOOP Statements END {$$ = new WhileStatement($2, $4);}
     ;
 
@@ -213,7 +214,7 @@ ReturnStatement
     | RETURN Expression {$$ = new ReturnStatement($2);}
     ;
 
-callStatement
+MethodCall
     : CompoundName LPAREN              RPAREN {$$ = new MethodCall($1, new ArrayList<>());}
     | CompoundName LPAREN ArgumentList RPAREN {$$ = new MethodCall($1, $3);}
     ;
@@ -226,8 +227,9 @@ ArgumentList
 Expression
     : Primary                   {$$ = $1;}
     | ConstructorInvocation     {$$ = $1;}
-    | callStatement             {$$ = $1;}
+    | MethodCall                {$$ = $1;}
     | Expression DOT Expression {$$ = new MemberAccess($1, $3);}
+    ;
 
 Primary
     : THIS                     {$$ = new ThisExpression();}
@@ -252,7 +254,7 @@ public void yyerror(String msg) {
 
 public int yylex() {
     // This will be implemented by your lexer
-    return 0;
+    return lexer.next_token().getType();
 }
 
 // Get the parsing result
@@ -262,5 +264,5 @@ public Program getParserResult() {
 
 // Helper method to get current line number (you'll need to implement this based on your lexer)
 private int getLineNumber() {
-    return 0; // Implement based on your lexer
+    return lexer.getLineNumber();
 }
