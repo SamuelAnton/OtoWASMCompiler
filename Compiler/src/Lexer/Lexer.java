@@ -39,7 +39,7 @@ public class Lexer {
                 case ':':
                 case ',':
                     // deal with operations signs
-                    if (word.isEmpty()) {
+                    if (word.length() == 0) {
                         // Deal with ":" and ":="
                         if (nextChar == ':') {
                             if (!isFileEnd()) {
@@ -126,6 +126,7 @@ public class Lexer {
             case "while":
             case "loop":
             case "if":
+            case "then":
             case "else":
             case "(":
             case ")":
