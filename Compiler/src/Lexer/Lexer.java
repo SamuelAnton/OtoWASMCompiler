@@ -1,6 +1,5 @@
 package Lexer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 // Lexic analyzer
@@ -11,6 +10,12 @@ public class Lexer {
     private int filePointer = -1;
     // Map to reduce number of NamedToken objects
     private final HashMap<String, NamedToken> tokenMap = new HashMap<>();
+    private int lineNumber = 1; // For bison parser
+
+    public Lexer(String text) {
+        fileText = text;
+        fillMap();
+    }
 
     // Get next character from program text
     private char nextChar() {
@@ -27,9 +32,14 @@ public class Lexer {
             char nextChar = nextChar();
             switch (nextChar) {
                 // Symbols, that shows word end
-                case ' ':
-                case '.':
                 case '\n':
+                    lineNumber++;
+                case '.':
+                    if (word.toString().matches("-?\\d+")) {
+                        word.append(nextChar);
+                        break;
+                    }
+                case ' ':
                 case '\r':
                 case '\t':
                 case '(':
@@ -39,7 +49,7 @@ public class Lexer {
                 case ':':
                 case ',':
                     // deal with operations signs
-                    if (word.isEmpty()) {
+                    if (word.length() == 0) {
                         // Deal with ":" and ":="
                         if (nextChar == ':') {
                             if (!isFileEnd()) {
@@ -90,25 +100,30 @@ public class Lexer {
         }
     }
 
-    // Start Lexer work
-    public ArrayList<NamedToken> process(String file) {
-        fillMap(); // Fill tokens map
-        fileText = file; // Save program text
-        ArrayList<NamedToken> tokens = new ArrayList<>();
-        // Collect token by token
-        while (true) {
-            NamedToken nextToken = nextToken();
-            if (nextToken == null)
-                break;
-            tokens.add(nextToken);
-        }
-        return tokens;
+    // Start entier Lexer work (for first defense only)
+    // public ArrayList<NamedToken> process(String file) {
+    //     fillMap(); // Fill tokens map
+    //     fileText = file; // Save program text
+    //     ArrayList<NamedToken> tokens = new ArrayList<>();
+    //     // Collect token by token
+    //     while (true) {
+    //         NamedToken nextToken = nextToken();
+    //         if (nextToken == null)
+    //             break;
+    //         tokens.add(nextToken);
+    //     }
+    //     return tokens;
+    // }
+
+    // For bison parser
+    public int getLineNumber() {
+        return lineNumber;
     }
 
-    // Get next token
-    NamedToken nextToken() {
+    // Produce next token
+    public NamedToken nextToken() {
         if (isFileEnd())
-            return null;
+            return new NamedToken(Token.tkEOF);
         String word = nextWord();
         switch (word) {
             // Program key words
@@ -126,7 +141,10 @@ public class Lexer {
             case "while":
             case "loop":
             case "if":
+            case "then":
             case "else":
+            case "List":
+            case "Array":
             case "(":
             case ")":
             case "[":
@@ -152,11 +170,31 @@ public class Lexer {
                 break;
             // Detect identifier
             default:
-                if (tokenMap.containsKey(word)) {
-                    return tokenMap.get(word);
+                // Check if it's a number
+                if (word.matches("-?\\d+")) {
+                    return new NamedToken(Token.tkNumber, word);
                 }
-                tokenMap.put(word, new NamedToken(word));
-                return tokenMap.get(word);
+                // Check if it's a real number
+                else if (word.matches("-?\\d+\\.\\d+")) {
+                    return new NamedToken(Token.tkRealLiteral, word);
+                }
+                // Check if it's a boolean
+                else if (word.equals("true") || word.equals("false")) {
+                    return new NamedToken(Token.tkBooleanLiteral, word);
+                }
+                // Check if it's a string literal
+                else if (word.startsWith("\"") && word.endsWith("\"")) {
+                    return new NamedToken(Token.tkStringLiteral, word.substring(1, word.length()-1));
+                }
+                // Otherwise it's an identifier
+                else {
+                    if (tokenMap.containsKey(word)) {
+                        return tokenMap.get(word);
+                    }
+                    NamedToken identifier = new NamedToken(Token.tkIdentifier, word);
+                    tokenMap.put(word, identifier);
+                    return identifier;
+                }
         }
         // Return next token, to skip useless "empty" symbols
         return nextToken();

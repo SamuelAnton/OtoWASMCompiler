@@ -1,9 +1,0 @@
-class Tester is
-    this() is
-        var arr : Array
-        arr.set(Integer(0), Integer(11))
-        arr.set(Integer(1), Integer(22))
-        arr.set(Integer(2), Integer(33))
-        var x : Integer(arr.get(Integer(1))) // 22
-    end
-end
