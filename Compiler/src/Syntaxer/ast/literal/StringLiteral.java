@@ -3,10 +3,10 @@ package Syntaxer.ast.literal;
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 
-public final class RealLiteral extends Expression {
-   public final double value;
+public final class StringLiteral extends Expression {
+   public final String value;
 
-   public RealLiteral(double v) {
+   public StringLiteral(String v) {
        super(-1, -1);
        this.value = v;
    }
@@ -17,4 +17,3 @@ public final class RealLiteral extends Expression {
    }
 
 }
-

@@ -3,14 +3,12 @@ package Syntaxer.ast.component;
 import Syntaxer.ast.ASTNode;
 import Syntaxer.ast.ASTVisitor;
 
-public final class Param extends ASTNode {
+public final class ExtensionType extends ASTNode {
     public final String name;
-    public final Type type;
 
-    public Param(String name, Type type) {
+    public ExtensionType(String name) {
         super(-1, -1);
         this.name = name;
-        this.type = type;
     }
 
     @Override

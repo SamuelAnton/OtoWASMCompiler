@@ -1,11 +1,9 @@
 package Syntaxer.ast;
 
-import Syntaxer.ast.component.Param;
-import Syntaxer.ast.declaration.ClassDeclaration;
-import Syntaxer.ast.declaration.ConstructorDeclaration;
-import Syntaxer.ast.declaration.FieldDeclaration;
+import Syntaxer.ast.component.*;
+import Syntaxer.ast.declaration.*;
 import Syntaxer.ast.expression.*;
-import Syntaxer.ast.declaration.MethodDeclaration;
+import Syntaxer.ast.literal.*;
 import Syntaxer.ast.statement.*;
 
 public interface ASTVisitor<R> {
@@ -32,6 +30,8 @@ public interface ASTVisitor<R> {
 
     R visit(ReturnStatement n);
 
+    R visit(VariableDeclaration n);
+
     // Expressions
     R visit(VariableReference n);
 
@@ -42,4 +42,28 @@ public interface ASTVisitor<R> {
     R visit(ConstructorCall n);
 
     R visit(ThisExpression n);
+
+    R visit(ExpressionStatement expressionStatement);
+
+    R visit(BooleanLiteral boolLiteral);
+
+    R visit(IntegerLiteral intLiteral);
+
+    R visit(RealLiteral realLiteral);
+
+    R visit(StringLiteral stringLiteral);
+
+    R visit(ExtensionType extensionType);
+
+    R visit(ReturnType returnType);
+
+    R visit(ArrayLiteral arrayLiteral);
+
+    R visit(ListLiteral listiteral);
+
+    R visit(Type type);
+
+    R visit(ElseStatement elseStatement);
+
+    R visit(ThenStatement thenStatement);
 }

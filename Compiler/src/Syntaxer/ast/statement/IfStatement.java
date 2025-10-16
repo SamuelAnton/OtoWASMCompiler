@@ -3,14 +3,12 @@ package Syntaxer.ast.statement;
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 
-import java.util.List;
-
 public final class IfStatement extends Statement {
     public final Expression cond;
-    public final List<Statement> thenBody;
-    public final List<Statement> elseBody;
+    public final ThenStatement thenBody;
+    public final ElseStatement elseBody;
 
-    public IfStatement(Expression cond, List<Statement> thenBlock, List<Statement> elseBody) {
+    public IfStatement(Expression cond, ThenStatement thenBlock, ElseStatement elseBody) {
         super();
         this.cond = cond;
         this.thenBody = thenBlock;

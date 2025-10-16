@@ -1,14 +1,9 @@
 package Syntaxer.ast;
 
-import Syntaxer.ast.component.Param;
-import Syntaxer.ast.declaration.ClassDeclaration;
-import Syntaxer.ast.declaration.ConstructorDeclaration;
-import Syntaxer.ast.declaration.FieldDeclaration;
-import Syntaxer.ast.declaration.MethodDeclaration;
-import Syntaxer.ast.expression.ConstructorCall;
-import Syntaxer.ast.expression.MemberAccess;
-import Syntaxer.ast.expression.MethodCall;
-import Syntaxer.ast.expression.ThisExpression;
+import Syntaxer.ast.component.*;
+import Syntaxer.ast.declaration.*;
+import Syntaxer.ast.expression.*;
+import Syntaxer.ast.literal.*;
 import Syntaxer.ast.statement.*;
 
 import java.util.List;
@@ -45,7 +40,7 @@ public class PrettyPrinter implements ASTVisitor<Void> {
     @Override
     public Void visit(ClassDeclaration n) {
         println("ClassDeclaration " + n.name +
-                (n.baseClass != null ? " extends " + n.baseClass : ""));
+                (n.baseClass != null ? " extends " + n.baseClass.name : ""));
         indent++;
         printList(n.members);
         indent--;
@@ -63,7 +58,8 @@ public class PrettyPrinter implements ASTVisitor<Void> {
 
     @Override
     public Void visit(MethodDeclaration n) {
-        println("MethodDeclaration " + n.name + " : " + n.returnType);
+        println("MethodDeclaration " + n.name + " : " + 
+        (n.returnType != null ? " returning " + n.returnType.name : ""));
         indent++;
         if (n.params != null && !n.params.isEmpty()) {
             println("Parameters:");
@@ -103,7 +99,7 @@ public class PrettyPrinter implements ASTVisitor<Void> {
 
     @Override
     public Void visit(Param n) {
-        println("Param " + n.name + " : " + n.type);
+        println("Param " + n.name + " : " + n.type.name);
         return null;
     }
 
@@ -131,15 +127,13 @@ public class PrettyPrinter implements ASTVisitor<Void> {
         n.cond.accept(this);
         indent--;
         if (n.thenBody != null) {
-            println("Then:");
             indent++;
-            printList(n.thenBody);
+            n.thenBody.accept(this);
             indent--;
         }
-        if (n.elseBody != null && !n.elseBody.isEmpty()) {
-            println("Else:");
+        if (n.elseBody != null && !n.elseBody.body.isEmpty()) {
             indent++;
-            printList(n.elseBody);
+            n.elseBody.accept(this);
             indent--;
         }
         indent--;
@@ -223,6 +217,92 @@ public class PrettyPrinter implements ASTVisitor<Void> {
     @Override
     public Void visit(ThisExpression n) {
         println("ThisExpression");
+        return null;
+    }
+
+    @Override
+    public Void visit(VariableDeclaration n) {
+        println("VariableDeclaration " + n.name);
+        indent++;
+        if (n.init != null) n.init.accept(this);
+        indent--;
+        return null;
+    }
+
+    @Override
+    public Void visit(ExpressionStatement n) {
+        println("expressionStatement");
+        indent++;
+        if (n.value != null) n.value.accept(this);
+        indent--;
+        return null;
+    }
+
+    @Override
+    public Void visit(BooleanLiteral n) {
+        println("BoolLiteral " + n.value);
+        return null;
+    }
+
+    @Override
+    public Void visit(IntegerLiteral n) {
+        println("IntegerLiteral " + n.value);
+        return null;
+    }
+
+    @Override
+    public Void visit(RealLiteral n) {
+        println("RealLiteral " + n.value);
+        return null;
+    }
+
+    @Override
+    public Void visit(StringLiteral n) {
+        println("StringLiteral " + n.value);
+        return null;
+    }
+
+    @Override
+    public Void visit(ExtensionType n) {
+        println("ExtensionType " + n.name);
+        return null;
+    }
+
+    @Override
+    public Void visit(ReturnType n) {
+        println("ReturnType " + n.name);
+        return null;
+    }
+
+    @Override
+    public Void visit(ArrayLiteral n) {
+        println("ArrayLiteral of type " + n.type + (n.size > 0 ? " of size " + n.size : ""));
+        return null;
+    }
+
+    @Override
+    public Void visit(ListLiteral n) {
+        println("ListLiteral of type " + n.type);
+        return null;
+    }
+
+    @Override
+    public Void visit(Type n) {
+        println("Type: " + n.name);
+        return null;
+    }
+
+    @Override
+    public Void visit(ElseStatement n) {
+        println("Else:");
+        printList(n.body);
+        return null;
+    }
+
+    @Override
+    public Void visit(ThenStatement n) {
+        println("Then:");
+        printList(n.body);
         return null;
     }
 }
