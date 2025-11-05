@@ -4,9 +4,9 @@ import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 
 public final class IfStatement extends Statement {
-    public final Expression cond;
-    public final ThenStatement thenBody;
-    public final ElseStatement elseBody;
+    public Expression cond;
+    public ThenStatement thenBody;
+    public ElseStatement elseBody;
 
     public IfStatement(Expression cond, ThenStatement thenBlock, ElseStatement elseBody) {
         super();
