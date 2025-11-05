@@ -11,6 +11,9 @@ public class ClassDeclaration extends ASTNode {
     public final ExtensionType baseClass; // null if none
     public final List<MemberDeclaration> members;
 
+    public List<MethodDeclaration> methodDeclarations;
+    public List<FieldDeclaration> fieldDeclarations;
+    public List<ConstructorDeclaration> constructorDeclarations;
     public ClassDeclaration superClass;
 
     public ClassDeclaration(String name, ExtensionType baseClass, List<MemberDeclaration> members) {
