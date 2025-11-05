@@ -16,7 +16,7 @@ public class Main {
         // Collecting program text from file
         StringBuilder builder = new StringBuilder();
         // OtoWASMCompiler/input.txt | input.txt
-        try (BufferedReader reader = new BufferedReader(new FileReader("OtoWASMCompiler/input.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("input.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 builder.append(line).append('\n');
@@ -39,17 +39,17 @@ public class Main {
         Parser parser = new Parser(lexer);
         parser.yyparse();
         Program res = parser.getParserResult();
-        // PrettyPrinter p = new PrettyPrinter();
-        // res.accept(p);
+        PrettyPrinter p = new PrettyPrinter();
+        res.accept(p);
 
         System.out.println();
         System.out.println();
 
-        SemanticAnalyser analyser = new SemanticAnalyser(res);
-        try {
-            analyser.process();
-        } catch (ValidationException e) {
-            System.out.println(e.getMessage());
-        }
+        // SemanticAnalyser analyser = new SemanticAnalyser(res);
+        // try {
+        //     analyser.process();
+        // } catch (ValidationException e) {
+        //     System.out.println(e.getMessage());
+        // }
     }
 }

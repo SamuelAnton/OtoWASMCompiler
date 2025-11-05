@@ -305,5 +305,19 @@ public class PrettyPrinter implements ASTVisitor<Void> {
         printList(n.body);
         return null;
     }
+
+    @Override
+    public Void visit(SuperConstructorCall n) {
+        println("SuperConstructorCall");
+        indent++;
+        if (n.args != null && !n.args.isEmpty()) {
+            println("Arguments:");
+            indent++;
+            printList(n.args);
+            indent--;
+        }
+        indent--;
+        return null;
+    }
 }
 

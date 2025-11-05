@@ -47,7 +47,7 @@ import Syntaxer.ast.statement.*;
 
 // keywords
 %token VAR CLASS IS END RETURN THIS METHOD
-%token EXTENDS WHILE LOOP IF ELSE THEN
+%token EXTENDS WHILE LOOP IF ELSE THEN SUPER
 
 // delimeters
 %token COLON   // :
@@ -91,6 +91,7 @@ import Syntaxer.ast.statement.*;
 %type <expression> CompoundName
 %type <expression> ConstructorInvocation
 %type <expression> MethodCall
+%type <expression> SuperConstructorCall
 %type <expressionList> ArgumentList
 %type <extensionType;> Extension
 %type <statementList> MethodBody
@@ -247,6 +248,11 @@ MethodCall
     | LIST  LBRACKET IDENTIFIER RBRACKET LPAREN ArgumentList RPAREN {$$ = new MethodCall(new ListLiteral($3), $6);}
     ;
 
+SuperConstructorCall
+    : SUPER LPAREN              RPAREN {$$ = new SuperConstructorCall(new ArrayList<>());}
+    | SUPER LPAREN ArgumentList RPAREN {$$ = new SuperConstructorCall($3);}
+    ;
+
 ArgumentList
     :                    Expression {$$ = new ArrayList<>(); $$.add($1);}
     | ArgumentList COMMA Expression {$1.add($3); $$ = $1;}
@@ -256,6 +262,7 @@ Expression
     : Primary                   {$$ = $1;}
     | ConstructorInvocation     {$$ = $1;}
     | MethodCall                {$$ = $1;}
+    | SuperConstructorCall      {$$ = $1;}
     | Expression DOT Expression {$$ = new MemberAccess($1, $3);}
     ;
 
@@ -264,7 +271,7 @@ Primary
     | CompoundName                                            {$$ = $1;}
     | LPAREN Expression RPAREN                                {$$ = $2;}
     | LIST  LBRACKET IDENTIFIER RBRACKET                      {$$ = new ListLiteral($3);}
-    | LIST                                                    {$$ = new ListLiteral("void")}
+    | LIST                                                    {$$ = new ListLiteral("void");}
     | ARRAY LBRACKET IDENTIFIER RBRACKET LPAREN IDENTIFIER RPAREN {$$ = new ArrayLiteral($3, $6);}
     | NUMBER                                                  {$$ = new IntegerLiteral($1);}
     | REAL_LITERAL                                            {$$ = new RealLiteral($1);}

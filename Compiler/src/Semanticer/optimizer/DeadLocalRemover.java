@@ -106,22 +106,22 @@ public class DeadLocalRemover {
     }
 
     private void collectUsedInExpression(Expression e, Set<String> used) {
-        switch (e) {
-            case VariableReference vr -> used.add(vr.name);
-            case MethodCall mc -> {
-                collectUsedInExpression(mc.target, used);
-                for (Expression a : mc.args) collectUsedInExpression(a, used);
-            }
-            case MemberAccess ma -> {
-                collectUsedInExpression(ma.target, used);
-                collectUsedInExpression(ma.member, used);
-            }
-            case ConstructorCall cc -> {
-                for (Expression a : cc.args) collectUsedInExpression(a, used);
-            }
-            case null, default -> {
-            }
-        }
+        // switch (e) {
+        //     case VariableReference vr -> used.add(vr.name);
+        //     case MethodCall mc -> {
+        //         collectUsedInExpression(mc.target, used);
+        //         for (Expression a : mc.args) collectUsedInExpression(a, used);
+        //     }
+        //     case MemberAccess ma -> {
+        //         collectUsedInExpression(ma.target, used);
+        //         collectUsedInExpression(ma.member, used);
+        //     }
+        //     case ConstructorCall cc -> {
+        //         for (Expression a : cc.args) collectUsedInExpression(a, used);
+        //     }
+        //     case null, default -> {
+        //     }
+        // }
     }
 
     private boolean isPure(Expression e) {

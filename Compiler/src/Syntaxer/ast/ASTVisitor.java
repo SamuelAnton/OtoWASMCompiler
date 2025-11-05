@@ -66,4 +66,6 @@ public interface ASTVisitor<R> {
     R visit(ElseStatement elseStatement);
 
     R visit(ThenStatement thenStatement);
+
+    R visit(SuperConstructorCall superConstructorCall);
 }
