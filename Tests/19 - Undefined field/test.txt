@@ -1,0 +1,13 @@
+class A is
+    method set(v: Integer) is
+        n := v
+    end
+end
+
+class Tester is
+    this() is
+        var b : A()
+        b.set(Integer(10))
+        b.get()
+    end
+end
