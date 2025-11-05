@@ -1,18 +1,22 @@
+import Lexer.Lexer;
+
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.parser.Parser;
+
+import Semanticer.SemanticAnalyser;
+import Semanticer.Components.Exceptions.ValidationException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import Lexer.Lexer;
-
 public class Main {
     public static void main(String[] args) {
         // Collecting program text from file
         StringBuilder builder = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader("input.txt"))) {
+        // OtoWASMCompiler/input.txt | input.txt
+        try (BufferedReader reader = new BufferedReader(new FileReader("OtoWASMCompiler/input.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 builder.append(line).append('\n');
@@ -25,12 +29,12 @@ public class Main {
         // Just empty lines, to deal with trash values in output
         System.out.println();
         System.out.println();
-        
+
         // Create lexer and parser
         Lexer lexer = new Lexer(inputString);
         // for (int i = 0; i < 15; i++) {
-        //     // System.out.println(lexer.nextToken().value);
-        //     lexer.nextToken();
+        // // System.out.println(lexer.nextToken().value);
+        // lexer.nextToken();
         // }
         Parser parser = new Parser(lexer);
         parser.yyparse();
@@ -41,6 +45,11 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        // System.out.println(res.classes);
+        SemanticAnalyser analyser = new SemanticAnalyser(res);
+        try {
+            analyser.process();
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

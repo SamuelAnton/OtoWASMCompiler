@@ -35,8 +35,7 @@ public enum Token {
     tkAssign(":=", 283), // := Example: n := v
     // Complex data structures
     tkArray("Array", 284), // array
-    tkList("List", 285)
-    ;
+    tkList("List", 285);
 
     // Label to automate HashMap fill
     public final String label;
