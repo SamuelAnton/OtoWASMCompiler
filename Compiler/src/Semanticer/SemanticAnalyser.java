@@ -5,28 +5,30 @@ import Semanticer.Components.Exceptions.ValidationException;
 import Syntaxer.ast.Program;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
+import Syntaxer.ast.declaration.FieldDeclaration;
+import Syntaxer.ast.declaration.MethodDeclaration;
 import Syntaxer.ast.statement.ReturnStatement;
 import Syntaxer.ast.statement.Statement;
-import Syntaxer.ast.statement.WhileStatement;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SemanticAnalyser {
     public Program program;
 
     private final HashMap<String, ClassDeclaration> nameToClass = new HashMap<>();
+    private final HashMap<String, Set<String>> classToMethods = new HashMap<>();
+    private final HashMap<String, Set<String>> classToFields = new HashMap<>();
 
-    private final ClassMemberAnalyzer classMemberAnalyzer;
-
-    public SemanticAnalyser(Program p, ClassMemberAnalyzer classMemberAnalyzer) {
+    public SemanticAnalyser(Program p) {
         program = p;
-        this.classMemberAnalyzer = classMemberAnalyzer;
     }
 
     public void process() {
         constructClassTree();
-        classMemberAnalyzer.analyze();
+        analyzeClassMembers();
         analyzeKeywordUsage();
     }
 
@@ -48,6 +50,25 @@ public class SemanticAnalyser {
         }
     }
 
+    private void analyzeClassMembers() {
+        for (ClassDeclaration c : nameToClass.values()) {
+            ClassMemberAnalyzer analyzer = new ClassMemberAnalyzer(c);
+            analyzer.analyze();
+
+            HashSet<String> fields = new HashSet<>();
+            for (FieldDeclaration f : c.fieldDeclarations) {
+                fields.add(f.name);
+            }
+            classToFields.put(c.name, fields);
+
+            HashSet<String> methods = new HashSet<>();
+            for (MethodDeclaration m : c.methodDeclarations) {
+                methods.add(m.name);
+            }
+            classToMethods.put(c.name, methods);
+        }
+    }
+
     private void analyzeKeywordUsage() {
         for (ClassDeclaration cls : nameToClass.values()) {
             for (ConstructorDeclaration ctor : cls.constructorDeclarations) {
@@ -64,7 +85,8 @@ public class SemanticAnalyser {
 
     private void checkNoReturnRecursive(Statement stmt, String className) {
         if (stmt instanceof ReturnStatement) {
-            throw new ValidationException("Return statement is not allowed inside constructor of class '" + className + "'");
+            throw new ValidationException(
+                    "Return statement is not allowed inside constructor of class '" + className + "'");
         }
     }
 }
