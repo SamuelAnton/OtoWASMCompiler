@@ -1,11 +1,6 @@
-class A extends C is
+class Tester is
     this() is
-        return
-    end
-end
-
-class B is
-    this() is
-        return
+        var l : List[Integer](Integer(5), Integer(2))
+        var h : Integer(l.head())
     end
 end
