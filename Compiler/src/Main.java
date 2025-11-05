@@ -29,7 +29,8 @@ public class Main {
         // Create lexer and parser
         Lexer lexer = new Lexer(inputString);
         // for (int i = 0; i < 15; i++) {
-        //     System.out.println(lexer.nextToken().value);
+        //     // System.out.println(lexer.nextToken().value);
+        //     lexer.nextToken();
         // }
         Parser parser = new Parser(lexer);
         parser.yyparse();

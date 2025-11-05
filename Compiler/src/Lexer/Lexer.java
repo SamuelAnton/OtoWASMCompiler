@@ -10,7 +10,6 @@ public class Lexer {
     private int filePointer = -1;
     // Map to reduce number of NamedToken objects
     private final HashMap<String, NamedToken> tokenMap = new HashMap<>();
-    private int lineNumber = 1; // For bison parser
 
     public Lexer(String text) {
         fileText = text;
@@ -32,13 +31,12 @@ public class Lexer {
             char nextChar = nextChar();
             switch (nextChar) {
                 // Symbols, that shows word end
-                case '\n':
-                    lineNumber++;
                 case '.':
                     if (word.toString().matches("-?\\d+")) {
                         word.append(nextChar);
                         break;
                     }
+                case '\n':
                 case ' ':
                 case '\r':
                 case '\t':
@@ -117,7 +115,13 @@ public class Lexer {
 
     // For bison parser
     public int getLineNumber() {
-        return lineNumber;
+        int counter = 1;
+        for (int i = 0; i < filePointer; i++) {
+            if (fileText.charAt(i) == '\n') {
+                counter++;
+            }
+        }
+        return counter;
     }
 
     // Produce next token
