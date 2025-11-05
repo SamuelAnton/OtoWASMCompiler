@@ -11,6 +11,8 @@ public class ClassDeclaration extends ASTNode {
     public final ExtensionType baseClass; // null if none
     public final List<MemberDeclaration> members;
 
+    public ClassDeclaration superClass;
+
     public ClassDeclaration(String name, ExtensionType baseClass, List<MemberDeclaration> members) {
         super(-1, -1);
         this.name = name;
