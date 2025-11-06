@@ -1,6 +1,7 @@
 package Semanticer;
 
 import Semanticer.Components.Checkers.ClassMemberAnalyzer;
+import Semanticer.Components.Checkers.SmartChecker;
 import Semanticer.Components.Exceptions.ValidationException;
 import Semanticer.Components.Types.ProgramTypes;
 import Semanticer.optimizer.ProgramOptimizer;
@@ -36,6 +37,9 @@ public class SemanticAnalyser {
         analyzeClassMembers(); // Get class members with checks
         analyzeKeywordUsage();
         checkReturnCoverage();
+
+        SmartChecker smartChecker = new SmartChecker();
+        smartChecker.visit(program);
 
         ProgramOptimizer optimizer = new ProgramOptimizer();
         optimizer.optimize(program);
@@ -204,7 +208,8 @@ public class SemanticAnalyser {
 
     private void checkReturnCoverage() {
         for (ClassDeclaration cls : nameToClass.values()) {
-            if (cls.methodDeclarations.isEmpty()) continue;
+            if (cls.methodDeclarations.isEmpty())
+                continue;
 
             for (MethodDeclaration m : cls.methodDeclarations) {
                 // skip methods without return type or explicitly "void"
@@ -217,15 +222,15 @@ public class SemanticAnalyser {
                     throw new ValidationException(
                             "Method " + m.name +
                                     " in class " + cls.name +
-                                    " does not return a value on all control paths."
-                    );
+                                    " does not return a value on all control paths.");
                 }
             }
         }
     }
 
     private boolean hasReturnOnAllPaths(List<Statement> body) {
-        if (body == null || body.isEmpty()) return false;
+        if (body == null || body.isEmpty())
+            return false;
 
         for (int i = 0; i < body.size(); i++) {
             Statement stmt = body.get(i);
@@ -239,12 +244,14 @@ public class SemanticAnalyser {
                 boolean thenReturns = hasReturnOnAllPaths(ifs.thenBody.body);
                 boolean elseReturns = ifs.elseBody != null && hasReturnOnAllPaths(ifs.elseBody.body);
                 // only if both branches guarantee return, continue
-                if (thenReturns && elseReturns) return true;
+                if (thenReturns && elseReturns)
+                    return true;
             }
 
             if (stmt instanceof WhileStatement ws) {
                 boolean loopReturns = hasReturnOnAllPaths(ws.body);
-                if (loopReturns) return true;
+                if (loopReturns)
+                    return true;
             }
         }
 

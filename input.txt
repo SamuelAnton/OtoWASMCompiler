@@ -18,6 +18,6 @@ class Tester is
         var y : Dog();
         var z : Polymorphism();
         z.polymorphism(x);
-        z.polymorphism(y);
+        z.y.polymorphism(y);
     end
 end

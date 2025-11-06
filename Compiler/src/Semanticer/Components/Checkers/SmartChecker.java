@@ -195,104 +195,128 @@ public class SmartChecker implements ASTVisitor<Void> {
         n.target.accept(this);
         n.member.accept(this);
 
-        // if (n.target.type.fields.containsKey(n.member.))
+        if (n.member instanceof VariableReference) {
+            if (!n.target.type.fields.containsKey(((VariableReference) n.member).name)
+                    && !n.target.type.methods.containsKey(((VariableReference) n.member).name)) {
+                throw new ValidationException(
+                        "Cannot find field or method " + ((VariableReference) n.member).name + " for type "
+                                + n.target.type.type
+                                + where());
+            }
+        } else if (!(n.member instanceof MemberAccess)) {
+            throw new ValidationException("Not correct member access" + where());
+        }
+        n.type = n.member.type;
         return null;
     }
 
     @Override
     public Void visit(MethodCall n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.target.accept(this);
+        forEach(n.args);
+
+        n.type = n.target.type;
+        return null;
     }
 
     @Override
     public Void visit(ConstructorCall n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        if (ProgramTypes.toVariableType(n.className) == null) {
+            throw new ValidationException("Type " + n.className + " is not defined" + where());
+        }
+        n.type = ProgramTypes.toVariableType(n.className);
+        forEach(n.args);
+        return null;
     }
 
     @Override
     public Void visit(ThisExpression n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.type = curClass.type;
+        return null;
     }
 
     @Override
-    public Void visit(ExpressionStatement expressionStatement) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ExpressionStatement n) {
+        n.value.accept(this);
+        return null;
     }
 
     @Override
-    public Void visit(BooleanLiteral boolLiteral) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(BooleanLiteral n) {
+        n.type = ProgramTypes.Boolean;
+        return null;
     }
 
     @Override
-    public Void visit(IntegerLiteral intLiteral) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(IntegerLiteral n) {
+        n.type = ProgramTypes.Integer;
+        return null;
     }
 
     @Override
-    public Void visit(RealLiteral realLiteral) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(RealLiteral n) {
+        n.type = ProgramTypes.Real;
+        return null;
     }
 
     @Override
-    public Void visit(StringLiteral stringLiteral) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(StringLiteral n) {
+        return null;
     }
 
     @Override
-    public Void visit(ExtensionType extensionType) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ExtensionType n) {
+        return null;
     }
 
     @Override
-    public Void visit(ReturnType returnType) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ReturnType n) {
+        if (ProgramTypes.toVariableType(n.name) == null) {
+            throw new ValidationException("Type " + n.name + " is not defined" + where());
+        }
+        return null;
     }
 
     @Override
-    public Void visit(ArrayLiteral arrayLiteral) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ArrayLiteral n) {
+        if (ProgramTypes.toVariableType(n.type) == null) {
+            throw new ValidationException("Type " + n.type + " is not defined" + where());
+        }
+        return null;
     }
 
     @Override
-    public Void visit(ListLiteral listiteral) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ListLiteral n) {
+        if (ProgramTypes.toVariableType(n.type) == null) {
+            throw new ValidationException("Type " + n.type + " is not defined" + where());
+        }
+        return null;
     }
 
     @Override
-    public Void visit(Type type) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(Type n) {
+        if (ProgramTypes.toVariableType(n.name) == null) {
+            throw new ValidationException("Type " + n.name + " is not defined" + where());
+        }
+        return null;
     }
 
     @Override
-    public Void visit(ElseStatement elseStatement) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ElseStatement n) {
+        forEach(n.body);
+        return null;
     }
 
     @Override
-    public Void visit(ThenStatement thenStatement) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(ThenStatement n) {
+        forEach(n.body);
+        return null;
     }
 
     @Override
-    public Void visit(SuperConstructorCall superConstructorCall) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public Void visit(SuperConstructorCall n) {
+        forEach(n.args);
+        return null;
     }
 
 }
