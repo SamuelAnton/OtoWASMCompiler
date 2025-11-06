@@ -101,7 +101,7 @@ public class PrettyPrinter implements ASTVisitor<Void> {
 
     @Override
     public Void visit(Param n) {
-        println("Param " + n.name + " : " + n.type.name);
+        println("Param " + n.name + " : " + n.t.name);
         return null;
     }
 

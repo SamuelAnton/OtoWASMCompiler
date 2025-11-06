@@ -7,6 +7,8 @@ import Syntaxer.ast.component.ExtensionType;
 import java.util.ArrayList;
 import java.util.List;
 
+import Semanticer.Components.Types.VariableType;
+
 public class ClassDeclaration extends ASTNode {
     public final String name;
     public final ExtensionType baseClass; // null if none
@@ -16,6 +18,8 @@ public class ClassDeclaration extends ASTNode {
     public final List<FieldDeclaration> fieldDeclarations = new ArrayList<>();
     public final List<ConstructorDeclaration> constructorDeclarations = new ArrayList<>();
     public ClassDeclaration superClass;
+
+    public VariableType type;
 
     public ClassDeclaration(String name, ExtensionType baseClass, List<MemberDeclaration> members) {
         super(-1, -1);

@@ -9,6 +9,7 @@ import java.util.List;
 public final class ConstructorDeclaration extends MemberDeclaration {
     public final List<Param> params;
     public List<Statement> body;
+    public ClassDeclaration baseClass;
 
     public ConstructorDeclaration(List<Param> params, List<Statement> body) {
         super();
@@ -21,7 +22,7 @@ public final class ConstructorDeclaration extends MemberDeclaration {
             return false;
         }
         for (int i = 0; i < params.size(); i++) {
-            if (params.get(i).type != c.params.get(i).type) {
+            if (params.get(i).t.name != c.params.get(i).t.name) {
                 return false;
             }
         }

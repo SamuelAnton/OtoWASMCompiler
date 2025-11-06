@@ -9,7 +9,11 @@ import Syntaxer.ast.expression.*;
 import Syntaxer.ast.literal.*;
 import Syntaxer.ast.statement.*;
 
+import java.util.HashSet;
 import java.util.List;
+
+import Semanticer.Components.Exceptions.ValidationException;
+import Semanticer.Components.Types.ProgramTypes;
 
 public class SmartChecker implements ASTVisitor<Void> {
     private void forEach(List<? extends ASTNode> list) {
@@ -35,32 +39,75 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(FieldDeclaration n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.init.accept(this);
+        n.dynamicType = n.init.type;
+        n.staticType = n.init.type;
+        return null;
     }
 
     @Override
     public Void visit(MethodDeclaration n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.returnType.accept(this);
+
+        // Check params
+        HashSet<String> paramNames = new HashSet<>();
+        for (Param p : n.params) {
+            p.baseMethod = n;
+            p.accept(this);
+            if (paramNames.contains(p.name)) {
+                throw new ValidationException(
+                        "Duplication of parameter " + p.name + " in method " + n.name + " in class " + n.baseClass);
+            }
+            paramNames.add(p.name);
+        }
+
+        forEach(n.body);
+        return null;
     }
 
     @Override
     public Void visit(ConstructorDeclaration n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // Check params
+        HashSet<String> paramNames = new HashSet<>();
+        for (Param p : n.params) {
+            p.accept(this);
+            if (paramNames.contains(p.name)) {
+                throw new ValidationException(
+                        "Duplication of parameter " + p.name + " in constructor of class " + n.baseClass);
+            }
+            paramNames.add(p.name);
+        }
+
+        forEach(n.body);
+        return null;
     }
 
     @Override
     public Void visit(Param n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.type = ProgramTypes.toVariableType(n.t.name);
+        if (n.type == null) {
+            if (n.baseMethod != null) {
+                throw new ValidationException("Undeclared type: " + n.t.name + " of parameter " + n.name + " in method "
+                        + n.baseMethod.name + " in class " + n.baseMethod.baseClass);
+            } else if (n.baseConstructor != null) {
+                throw new ValidationException("Undeclared type: " + n.t.name + " of parameter " + n.name
+                        + " in constructor of class " + n.baseConstructor.baseClass.name);
+            } else {
+                throw new ValidationException("Undeclared type:" + n.t.name + " of parameter " + n.name);
+            }
+        }
+        return null;
     }
 
     @Override
     public Void visit(AssignmentStatement n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.target.accept(this);
+        n.value.accept(this);
+        if (!ProgramTypes.canCast(n.target.type, n.value.type)) {
+            throw new ValidationException(
+                    "Cannot assign value of " + n.value.type + " type to variable of type " + n.target.type);
+        }
+        return null;
     }
 
     @Override

@@ -2,6 +2,8 @@ package Semanticer;
 
 import Semanticer.Components.Checkers.ClassMemberAnalyzer;
 import Semanticer.Components.Exceptions.ValidationException;
+import Semanticer.Components.Types.ProgramTypes;
+import Semanticer.Components.Types.VariableType;
 import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.Program;
 import Syntaxer.ast.declaration.ClassDeclaration;
@@ -45,11 +47,16 @@ public class SemanticAnalyser {
                 throw new ValidationException("Class " + c.name + " have already been declared.");
             }
             nameToClass.put(c.name, c);
+
+            // Define new types
+            c.type = ProgramTypes.newType(c.name);
         }
         // Resole inheretence
         for (ClassDeclaration c : classes) {
             if (c.baseClass != null) {
-                c.superClass = nameToClass.get(c.baseClass.name);
+                ClassDeclaration baseClass = nameToClass.get(c.baseClass.name);
+                c.superClass = baseClass;
+                c.type.baseType = baseClass.type;
 
                 // Check circular inheretence
                 checkInheretence(c);
@@ -123,6 +130,7 @@ public class SemanticAnalyser {
             }
             // Add method
             methods.add(m);
+            m.baseClass = c;
         }
         classToMethods.put(c.name, methods);
 
@@ -131,10 +139,14 @@ public class SemanticAnalyser {
         for (ConstructorDeclaration cons : c.constructorDeclarations) {
             for (ConstructorDeclaration cd : constructors) {
                 if (cd.sameSignature(cons)) {
-                    throw new ValidationException("Several constructors with same ");
+                    throw new ValidationException("Several constructors with same signature in class " + c.name);
                 }
             }
+            constructors.add(cons);
+            cons.baseClass = c;
         }
+        // Add constructors
+        classToConstructors.put(c.name, constructors);
 
         // Collect values from super class
         if (c.superClass != null) {

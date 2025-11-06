@@ -12,6 +12,7 @@ public final class MethodDeclaration extends MemberDeclaration {
     public final List<Param> params;
     public final ReturnType returnType;
     public List<Statement> body;
+    public ClassDeclaration baseClass;
 
     public MethodDeclaration(String name, List<Param> params, ReturnType returnType, List<Statement> body) {
         super();
@@ -26,7 +27,7 @@ public final class MethodDeclaration extends MemberDeclaration {
             return false;
         }
         for (int i = 0; i < params.size(); i++) {
-            if (params.get(i).type != m.params.get(i).type) {
+            if (params.get(i).t.name != m.params.get(i).t.name) {
                 return false;
             }
         }
