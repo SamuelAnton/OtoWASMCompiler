@@ -11,52 +11,46 @@ import java.util.List;
 
 public class UnreachableCodeRemover {
 
-    public void runOnProgram(Program p) {
-        for (ClassDeclaration cls : p.classes) {
+    public void runOnProgram(Program program) {
+        for (ClassDeclaration cls : program.classes) {
             if (cls.methodDeclarations != null) {
-                for (MethodDeclaration method : cls.methodDeclarations) {
-                    method.body = trimAfterReturn(method.body);
+                for (MethodDeclaration m : cls.methodDeclarations) {
+                    m.body = trimAfterReturn(m.body);
                 }
             }
             if (cls.constructorDeclarations != null) {
-                for (ConstructorDeclaration constructorDeclaration : cls.constructorDeclarations) {
-                    constructorDeclaration.body = trimAfterReturn(constructorDeclaration.body);
+                for (ConstructorDeclaration c : cls.constructorDeclarations) {
+                    c.body = trimAfterReturn(c.body);
                 }
             }
         }
     }
 
     private List<Statement> trimAfterReturn(List<Statement> stmts) {
-        List<Statement> out = new ArrayList<>();
-        if (stmts == null) return out;
+        if (stmts == null) return null;
+        List<Statement> result = new ArrayList<>();
         boolean seenReturn = false;
 
         for (Statement s : stmts) {
             if (seenReturn) break;
 
-            if (s instanceof IfStatement ifs) {
-                if (ifs.thenBody != null && ifs.thenBody.body != null) {
-                    List<Statement> trimmedThen = trimAfterReturn(ifs.thenBody.body);
-                    ifs.thenBody = new ThenStatement(trimmedThen);
-                }
-                if (ifs.elseBody != null && ifs.elseBody.body != null) {
-                    List<Statement> trimmedElse = trimAfterReturn(ifs.elseBody.body);
-                    ifs.elseBody = new ElseStatement(trimmedElse);
-                }
-                out.add(ifs);
-            }
-            else if (s instanceof WhileStatement ws) {
+            if (s instanceof ReturnStatement) {
+                result.add(s);
+                seenReturn = true;
+            } else if (s instanceof IfStatement ifs) {
+                if (ifs.thenBody != null && ifs.thenBody.body != null)
+                    ifs.thenBody.body = trimAfterReturn(ifs.thenBody.body);
+                if (ifs.elseBody != null && ifs.elseBody.body != null)
+                    ifs.elseBody.body = trimAfterReturn(ifs.elseBody.body);
+                result.add(ifs);
+            } else if (s instanceof WhileStatement ws) {
                 ws.body = trimAfterReturn(ws.body);
-                out.add(ws);
-            }
-            else {
-                out.add(s);
-                if (s instanceof ReturnStatement) {
-                    seenReturn = true;
-                }
+                result.add(ws);
+            } else {
+                result.add(s);
             }
         }
 
-        return out;
+        return result;
     }
 }
