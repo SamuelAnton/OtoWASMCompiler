@@ -1,0 +1,7 @@
+class A is
+    var n : Integer(5);
+    method set(v: Integer) is
+        return V;
+        n := v;
+    end
+end

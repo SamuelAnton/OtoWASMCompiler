@@ -3,6 +3,7 @@ package Semanticer;
 import Semanticer.Components.Checkers.ClassMemberAnalyzer;
 import Semanticer.Components.Exceptions.ValidationException;
 import Semanticer.optimizer.ProgramOptimizer;
+import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
@@ -34,6 +35,12 @@ public class SemanticAnalyser {
         constructClassTree(); // Get classes with check on circular inheritance, same name
         analyzeClassMembers(); // Get class members with checks
         analyzeKeywordUsage();
+
+        ProgramOptimizer optimizer = new ProgramOptimizer();
+        optimizer.optimize(program);
+
+        PrettyPrinter printer = new PrettyPrinter();
+        program.accept(printer);
     }
 
     // Get classes with check on circular inheritance, same name
