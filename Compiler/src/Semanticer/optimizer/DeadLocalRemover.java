@@ -17,12 +17,12 @@ public class DeadLocalRemover {
 
     public void runOnProgram(Program p) {
         for (ClassDeclaration cls : p.classes) {
-            if (cls.methodDeclarations != null) {
+            if (!cls.methodDeclarations.isEmpty()) {
                 for (MethodDeclaration m : cls.methodDeclarations) {
                     m.body = removeDeadLocals(m.body);
                 }
             }
-            if (cls.constructorDeclarations != null) {
+            if (!cls.constructorDeclarations.isEmpty()) {
                 for (ConstructorDeclaration c : cls.constructorDeclarations) {
                     c.body = removeDeadLocals(c.body);
                 }
@@ -119,7 +119,8 @@ public class DeadLocalRemover {
             case ConstructorCall cc -> {
                 for (Expression a : cc.args) collectUsedInExpression(a, used);
             }
-            case null, default -> {}
+            case null, default -> {
+            }
         }
     }
 

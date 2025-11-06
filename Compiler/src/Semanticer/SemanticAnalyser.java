@@ -3,7 +3,6 @@ package Semanticer;
 import Semanticer.Components.Checkers.ClassMemberAnalyzer;
 import Semanticer.Components.Exceptions.ValidationException;
 import Semanticer.Components.Types.ProgramTypes;
-import Semanticer.Components.Types.VariableType;
 import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
@@ -11,13 +10,12 @@ import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
 import Syntaxer.ast.declaration.FieldDeclaration;
 import Syntaxer.ast.declaration.MethodDeclaration;
+import Syntaxer.ast.statement.IfStatement;
 import Syntaxer.ast.statement.ReturnStatement;
 import Syntaxer.ast.statement.Statement;
+import Syntaxer.ast.statement.WhileStatement;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SemanticAnalyser {
     public Program program;
@@ -37,6 +35,7 @@ public class SemanticAnalyser {
         constructClassTree(); // Get classes with check on circular inheritance, same name
         analyzeClassMembers(); // Get class members with checks
         analyzeKeywordUsage();
+        checkReturnCoverage();
 
         ProgramOptimizer optimizer = new ProgramOptimizer();
         optimizer.optimize(program);
@@ -86,7 +85,7 @@ public class SemanticAnalyser {
 
         while (cur != null) {
             cs.append(" -> ").append(cur.name);
-            if (cur.name == c.name) {
+            if (Objects.equals(cur.name, c.name)) {
                 throw new ValidationException("Circle inheretence of classes: " + cs.toString());
             }
             cur = cur.superClass;
@@ -116,7 +115,7 @@ public class SemanticAnalyser {
         for (FieldDeclaration f : c.fieldDeclarations) {
             // Check name duplication
             for (FieldDeclaration fd : fields) {
-                if (fd.name == f.name) {
+                if (Objects.equals(fd.name, f.name)) {
                     throw new ValidationException(
                             "Several fields of same name: '" + f.name + "' are in class " + c.name);
                 }
@@ -165,7 +164,7 @@ public class SemanticAnalyser {
             // Add not shadowed fields
             for (FieldDeclaration f : classToFields.get(c.superClass.name)) {
                 for (FieldDeclaration fd : fields) {
-                    if (fd.name != f.name) {
+                    if (!Objects.equals(fd.name, f.name)) {
                         fields.add(f);
                     }
                 }
@@ -201,5 +200,55 @@ public class SemanticAnalyser {
             throw new ValidationException(
                     "Return statement is not allowed inside constructor of class '" + className + "'");
         }
+    }
+
+    private void checkReturnCoverage() {
+        for (ClassDeclaration cls : nameToClass.values()) {
+            if (cls.methodDeclarations.isEmpty()) continue;
+
+            for (MethodDeclaration m : cls.methodDeclarations) {
+                // skip methods without return type or explicitly "void"
+                if (m.returnType == null || m.returnType.name.equals("void"))
+                    continue;
+
+                boolean hasReturnPath = hasReturnOnAllPaths(m.body);
+
+                if (!hasReturnPath) {
+                    throw new ValidationException(
+                            "Method " + m.name +
+                                    " in class " + cls.name +
+                                    " does not return a value on all control paths."
+                    );
+                }
+            }
+        }
+    }
+
+    private boolean hasReturnOnAllPaths(List<Statement> body) {
+        if (body == null || body.isEmpty()) return false;
+
+        for (int i = 0; i < body.size(); i++) {
+            Statement stmt = body.get(i);
+
+            if (stmt instanceof ReturnStatement rs) {
+                // must have an expression for typed methods
+                return rs.value != null;
+            }
+
+            if (stmt instanceof IfStatement ifs) {
+                boolean thenReturns = hasReturnOnAllPaths(ifs.thenBody.body);
+                boolean elseReturns = ifs.elseBody != null && hasReturnOnAllPaths(ifs.elseBody.body);
+                // only if both branches guarantee return, continue
+                if (thenReturns && elseReturns) return true;
+            }
+
+            if (stmt instanceof WhileStatement ws) {
+                boolean loopReturns = hasReturnOnAllPaths(ws.body);
+                if (loopReturns) return true;
+            }
+        }
+
+        // if no return found at end then fail
+        return false;
     }
 }
