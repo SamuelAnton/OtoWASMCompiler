@@ -4,7 +4,10 @@ import Syntaxer.ast.Program;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
 import Syntaxer.ast.declaration.MethodDeclaration;
-import Syntaxer.ast.statement.*;
+import Syntaxer.ast.statement.IfStatement;
+import Syntaxer.ast.statement.ReturnStatement;
+import Syntaxer.ast.statement.Statement;
+import Syntaxer.ast.statement.WhileStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +16,12 @@ public class UnreachableCodeRemover {
 
     public void runOnProgram(Program program) {
         for (ClassDeclaration cls : program.classes) {
-            if (cls.methodDeclarations != null) {
+            if (!cls.methodDeclarations.isEmpty()) {
                 for (MethodDeclaration m : cls.methodDeclarations) {
                     m.body = trimAfterReturn(m.body);
                 }
             }
-            if (cls.constructorDeclarations != null) {
+            if (!cls.constructorDeclarations.isEmpty()) {
                 for (ConstructorDeclaration c : cls.constructorDeclarations) {
                     c.body = trimAfterReturn(c.body);
                 }

@@ -1,0 +1,9 @@
+class Math is
+    method square(x: Integer) is
+        if (false) then
+            return Integer(1);
+        else
+            return Integer(2);
+        end
+    end
+end
