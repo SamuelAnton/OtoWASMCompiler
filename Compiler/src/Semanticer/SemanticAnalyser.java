@@ -27,6 +27,7 @@ public class SemanticAnalyser {
     private final HashMap<String, Set<FieldDeclaration>> classToFields = new HashMap<>();
 
     public SemanticAnalyser(Program p) {
+        new ProgramTypes().fillTypes();
         program = p;
     }
 
