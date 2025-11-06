@@ -23,7 +23,8 @@ public class PrettyPrinter implements ASTVisitor<Void> {
     private void printList(List<? extends ASTNode> list) {
         if (list != null) {
             for (ASTNode node : list) {
-                if (node != null) node.accept(this);
+                if (node != null)
+                    node.accept(this);
             }
         }
     }
@@ -51,15 +52,16 @@ public class PrettyPrinter implements ASTVisitor<Void> {
     public Void visit(FieldDeclaration n) {
         println("FieldDeclaration " + n.name);
         indent++;
-        if (n.init != null) n.init.accept(this);
+        if (n.init != null)
+            n.init.accept(this);
         indent--;
         return null;
     }
 
     @Override
     public Void visit(MethodDeclaration n) {
-        println("MethodDeclaration " + n.name + " : " + 
-        (n.returnType != null ? " returning " + n.returnType.name : ""));
+        println("MethodDeclaration " + n.name + " : " +
+                (n.returnType != null ? " returning " + n.returnType.name : ""));
         indent++;
         if (n.params != null && !n.params.isEmpty()) {
             println("Parameters:");
@@ -224,7 +226,8 @@ public class PrettyPrinter implements ASTVisitor<Void> {
     public Void visit(VariableDeclaration n) {
         println("VariableDeclaration " + n.name);
         indent++;
-        if (n.init != null) n.init.accept(this);
+        if (n.init != null)
+            n.init.accept(this);
         indent--;
         return null;
     }
@@ -233,7 +236,8 @@ public class PrettyPrinter implements ASTVisitor<Void> {
     public Void visit(ExpressionStatement n) {
         println("expressionStatement");
         indent++;
-        if (n.value != null) n.value.accept(this);
+        if (n.value != null)
+            n.value.accept(this);
         indent--;
         return null;
     }
@@ -306,4 +310,3 @@ public class PrettyPrinter implements ASTVisitor<Void> {
         return null;
     }
 }
-
