@@ -3,13 +3,13 @@ class Point is
     var y : Integer
 
     this(a: Integer, b: Integer) is
-        x := a
-        y := b
+        x := a;
+        y := b;
     end
 end
 
 class Tester is
     this() is
-        var p : Point(Integer(5), Integer(2))
+        var p : Point(Integer(5), Integer(2));
     end
 end

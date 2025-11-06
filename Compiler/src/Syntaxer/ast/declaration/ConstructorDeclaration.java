@@ -16,6 +16,18 @@ public final class ConstructorDeclaration extends MemberDeclaration {
         this.body = body;
     }
 
+    public Boolean sameSignature(ConstructorDeclaration c) {
+        if (c.params.size() != params.size()) {
+            return false;
+        }
+        for (int i = 0; i < params.size(); i++) {
+            if (params.get(i).type != c.params.get(i).type) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public <R> R accept(ASTVisitor<R> visitor) {
         return visitor.visit(this);

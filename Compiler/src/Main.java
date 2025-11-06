@@ -1,5 +1,6 @@
 import Lexer.Lexer;
 
+import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.parser.Parser;
@@ -32,24 +33,32 @@ public class Main {
 
         // Create lexer and parser
         Lexer lexer = new Lexer(inputString);
-        // for (int i = 0; i < 15; i++) {
-        // // System.out.println(lexer.nextToken().value);
-        // lexer.nextToken();
+        // for (int i = 0; i < 30; i++) {
+        // System.out.println(lexer.nextToken().value);
+        // System.out.println();
         // }
         Parser parser = new Parser(lexer);
         parser.yyparse();
         Program res = parser.getParserResult();
-        PrettyPrinter p = new PrettyPrinter();
-        res.accept(p);
+        // PrettyPrinter p = new PrettyPrinter();
+        // res.accept(p);
 
         System.out.println();
         System.out.println();
 
-        // SemanticAnalyser analyser = new SemanticAnalyser(res);
-        // try {
-        //     analyser.process();
-        // } catch (ValidationException e) {
-        //     System.out.println(e.getMessage());
-        // }
+        SemanticAnalyser analyser = new SemanticAnalyser(res);
+        try {
+            analyser.process();
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+
+        // Run optimizations
+        ProgramOptimizer optimizer = new ProgramOptimizer();
+        optimizer.optimize(res);
+
+        // Print optimized AST
+        PrettyPrinter printer = new PrettyPrinter();
+        res.accept(printer);
     }
 }

@@ -6,7 +6,7 @@ end
 
 class Tester is
     this() is
-        var c : Counter()
-        c.get()
+        var c : Counter();
+        c.get();
     end
 end

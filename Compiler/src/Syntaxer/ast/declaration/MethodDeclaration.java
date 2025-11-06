@@ -1,6 +1,5 @@
 package Syntaxer.ast.declaration;
 
-
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.component.Param;
 import Syntaxer.ast.component.ReturnType;
@@ -20,6 +19,18 @@ public final class MethodDeclaration extends MemberDeclaration {
         this.params = params;
         this.returnType = returnType;
         this.body = body;
+    }
+
+    public Boolean sameSignature(MethodDeclaration m) {
+        if (m.name != name || m.returnType.name != returnType.name || m.params.size() != params.size()) {
+            return false;
+        }
+        for (int i = 0; i < params.size(); i++) {
+            if (params.get(i).type != m.params.get(i).type) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -1,11 +1,11 @@
 class A is
     this() is
-        return
+        return;
     end
 end
 
 class A is
     this() is
-        return
+        return;
     end
 end

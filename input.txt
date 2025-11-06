@@ -1,6 +1,7 @@
 class A is
-    this() is
-        return;
-        var x : Integer(1);
+    var n : Integer(5)
+    method set(v: Integer) is
+        return
+        n := v
     end
 end
