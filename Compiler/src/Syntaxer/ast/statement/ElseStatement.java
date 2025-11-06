@@ -5,7 +5,7 @@ import Syntaxer.ast.ASTVisitor;
 import java.util.List;
 
 public final class ElseStatement extends Statement {
-    public final List<Statement> body;
+    public List<Statement> body;
 
     public ElseStatement(List<Statement> body) {
         super();

@@ -7,7 +7,7 @@ import java.util.List;
 
 public final class WhileStatement extends Statement {
     public final Expression cond;
-    public final List<Statement> body;
+    public List<Statement> body;
 
     public WhileStatement(Expression cond, List<Statement> body) {
         super();

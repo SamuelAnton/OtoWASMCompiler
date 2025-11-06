@@ -1,2 +1,6 @@
 /Compiler/.vscode/
 /input.txt
+/out
+*.xml
+*.iml
+.gitignore

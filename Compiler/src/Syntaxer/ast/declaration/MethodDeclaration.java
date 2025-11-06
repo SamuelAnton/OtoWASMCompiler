@@ -11,7 +11,7 @@ public final class MethodDeclaration extends MemberDeclaration {
     public final String name;
     public final List<Param> params;
     public final ReturnType returnType;
-    public final List<Statement> body;
+    public List<Statement> body;
 
     public MethodDeclaration(String name, List<Param> params, ReturnType returnType, List<Statement> body) {
         super();

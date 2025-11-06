@@ -23,19 +23,20 @@ public enum Token {
     tkIf("if", 272), // if
     tkElse("else", 273), // else
     tkThen("then", 274), // then
+    tkSuper("super", 275), // call to super constructor
     // Operators and delimeters
-    tkColon(":", 275), // : Example: (var x : Animal())
-    tkDot(".", 276), // . Example: c.get()
-    tkComma(",", 277), // ,
-    tkLParen("(", 278), // (
-    tkRParen(")", 279), // )
-    tkLBracket("[", 280), // [
-    tkRBracket("]", 281), // ]
-    tkShortBody("=>", 282), // =>
-    tkAssign(":=", 283), // := Example: n := v
+    tkColon(":", 276), // : Example: (var x : Animal())
+    tkDot(".", 277), // . Example: c.get()
+    tkComma(",", 278), // ,
+    tkLParen("(", 279), // (
+    tkRParen(")", 280), // )
+    tkLBracket("[", 281), // [
+    tkRBracket("]", 282), // ]
+    tkShortBody("=>", 283), // =>
+    tkAssign(":=", 284), // := Example: n := v
     // Complex data structures
-    tkArray("Array", 284), // array
-    tkList("List", 285);
+    tkArray("Array", 285), // array
+    tkList("List", 286); // list
 
     // Label to automate HashMap fill
     public final String label;
