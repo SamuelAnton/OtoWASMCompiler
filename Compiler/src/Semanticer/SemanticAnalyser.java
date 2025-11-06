@@ -139,6 +139,7 @@ public class SemanticAnalyser {
             // Add method
             methods.add(m);
             m.baseClass = c;
+            c.type.methods.put(m.name, m);
         }
         classToMethods.put(c.name, methods);
 

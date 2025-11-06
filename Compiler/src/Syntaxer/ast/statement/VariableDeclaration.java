@@ -1,9 +1,10 @@
 package Syntaxer.ast.statement;
 
+import Semanticer.Components.Types.VariableType;
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 
-public class VariableDeclaration extends Statement{
+public class VariableDeclaration extends Statement {
     public final String name;
     public final Expression init;
 

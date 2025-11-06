@@ -3,15 +3,11 @@ package Syntaxer.ast.component;
 import Semanticer.Components.Types.VariableType;
 import Syntaxer.ast.ASTNode;
 import Syntaxer.ast.ASTVisitor;
-import Syntaxer.ast.declaration.ConstructorDeclaration;
-import Syntaxer.ast.declaration.MethodDeclaration;
 
 public final class Param extends ASTNode {
     public final String name;
     public final Type t;
     public VariableType type;
-    public MethodDeclaration baseMethod;
-    public ConstructorDeclaration baseConstructor;
 
     public Param(String name, Type type) {
         super(-1, -1);

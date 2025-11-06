@@ -3,6 +3,7 @@ package Semanticer.Components.Types;
 import java.util.HashMap;
 
 public class ProgramTypes {
+    public static final VariableType Void = new VariableType("Void", null);
     public static final VariableType Class = new VariableType("Class", null);
 
     public static final VariableType AnyValue = new VariableType("AnyValue", Class);
@@ -44,6 +45,8 @@ public class ProgramTypes {
                 return Array;
             case "List":
                 return List;
+            case null:
+                return Void;
             default:
                 return userTypes.get(type);
         }
