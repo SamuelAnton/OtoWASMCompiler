@@ -54,10 +54,6 @@ public class IfSimplifier {
         return out;
     }
 
-    /**
-     * Simplify an if-statement where condition is constant (True/False).
-     * Returns a list of replacement statements (possibly empty).
-     */
     private List<Statement> simplifyIf(IfStatement ifs) {
         Expression cond = ifs.cond;
 
@@ -79,7 +75,7 @@ public class IfSimplifier {
             }
         }
 
-        // condition is not constant → keep the IF
+        // condition is not constant then keep the 'if'
         List<Statement> keep = new ArrayList<>();
         keep.add(ifs);
         return keep;
