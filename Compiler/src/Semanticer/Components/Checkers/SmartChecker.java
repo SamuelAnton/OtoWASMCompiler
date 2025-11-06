@@ -189,4 +189,10 @@ public class SmartChecker implements ASTVisitor<Void> {
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
+    @Override
+    public Void visit(SuperConstructorCall superConstructorCall) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
 }

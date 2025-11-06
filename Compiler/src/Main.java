@@ -32,9 +32,9 @@ public class Main {
 
         // Create lexer and parser
         Lexer lexer = new Lexer(inputString);
-        // for (int i = 0; i < 15; i++) {
-        // // System.out.println(lexer.nextToken().value);
-        // lexer.nextToken();
+        // for (int i = 0; i < 30; i++) {
+        // System.out.println(lexer.nextToken().value);
+        // System.out.println();
         // }
         Parser parser = new Parser(lexer);
         parser.yyparse();
@@ -47,9 +47,9 @@ public class Main {
 
         // SemanticAnalyser analyser = new SemanticAnalyser(res);
         // try {
-        //     analyser.process();
+        // analyser.process();
         // } catch (ValidationException e) {
-        //     System.out.println(e.getMessage());
+        // System.out.println(e.getMessage());
         // }
     }
 }
