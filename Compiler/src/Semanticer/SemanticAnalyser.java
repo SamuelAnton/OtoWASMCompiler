@@ -2,6 +2,7 @@ package Semanticer;
 
 import Semanticer.Components.Checkers.ClassMemberAnalyzer;
 import Semanticer.Components.Exceptions.ValidationException;
+import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.Program;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;

@@ -4,6 +4,7 @@ import Syntaxer.ast.ASTNode;
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.component.ExtensionType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClassDeclaration extends ASTNode {
@@ -11,9 +12,9 @@ public class ClassDeclaration extends ASTNode {
     public final ExtensionType baseClass; // null if none
     public final List<MemberDeclaration> members;
 
-    public List<MethodDeclaration> methodDeclarations;
-    public List<FieldDeclaration> fieldDeclarations;
-    public List<ConstructorDeclaration> constructorDeclarations;
+    public final List<MethodDeclaration> methodDeclarations = new ArrayList<>();
+    public final List<FieldDeclaration> fieldDeclarations = new ArrayList<>();
+    public final List<ConstructorDeclaration> constructorDeclarations = new ArrayList<>();
     public ClassDeclaration superClass;
 
     public ClassDeclaration(String name, ExtensionType baseClass, List<MemberDeclaration> members) {

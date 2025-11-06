@@ -46,19 +46,7 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        SemanticAnalyser analyser = new SemanticAnalyser(res);
-        try {
-            analyser.process();
-        } catch (ValidationException e) {
-            System.out.println(e.getMessage());
-        }
-
-        // Run optimizations
-        ProgramOptimizer optimizer = new ProgramOptimizer();
-        optimizer.optimize(res);
-
-        // Print optimized AST
-        PrettyPrinter printer = new PrettyPrinter();
-        res.accept(printer);
+        // SemanticAnalyser analyser = new SemanticAnalyser(res);
+        // analyser.process();
     }
 }
