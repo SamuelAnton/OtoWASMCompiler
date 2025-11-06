@@ -89,6 +89,7 @@ public class SemanticAnalyser {
             if (cur.name == c.name) {
                 throw new ValidationException("Circle inheretence of classes: " + cs.toString());
             }
+            cur = cur.superClass;
         }
     }
 

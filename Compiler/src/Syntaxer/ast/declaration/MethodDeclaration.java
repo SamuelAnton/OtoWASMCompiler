@@ -18,8 +18,13 @@ public final class MethodDeclaration extends MemberDeclaration {
         super();
         this.name = name;
         this.params = params;
-        this.returnType = returnType;
         this.body = body;
+
+        if (returnType == null) {
+            this.returnType = new ReturnType(null);
+        } else {
+            this.returnType = returnType;
+        }
     }
 
     public Boolean sameSignature(MethodDeclaration m) {

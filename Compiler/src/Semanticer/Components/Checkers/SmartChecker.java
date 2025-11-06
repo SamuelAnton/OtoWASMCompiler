@@ -112,8 +112,13 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(IfStatement n) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        n.cond.accept(this);
+        if (!ProgramTypes.canCast(ProgramTypes.Boolean, n.cond.type)) {
+            throw new ValidationException("Condition expression is not of Boolean type");
+        }
+        n.thenBody.accept(this);
+        n.elseBody.accept(this);
+        return null;
     }
 
     @Override

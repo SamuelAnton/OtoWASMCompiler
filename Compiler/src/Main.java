@@ -46,7 +46,7 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        // SemanticAnalyser analyser = new SemanticAnalyser(res);
-        // analyser.process();
+        SemanticAnalyser analyser = new SemanticAnalyser(res);
+        analyser.process();
     }
 }
