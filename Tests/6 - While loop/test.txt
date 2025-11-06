@@ -1,8 +1,8 @@
 class Tester is
     this() is
-        var i : Integer(0)
+        var i : Integer(0);
         while i.Less(Integer(5)) loop
-            i := i.Plus(Integer(1))
+            i := i.Plus(Integer(1));
         end
     end
 end

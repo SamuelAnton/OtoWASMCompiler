@@ -1,8 +1,8 @@
 class Tester is
     this() is
-        var arr : Array[Integer](10)
-        arr.set(Integer(1), Integer(2))
-        arr.set(Integer(2), Integer(3))
-        var result : Integer(arr.get(Integer(1)).Plus(arr.get(Integer(2))))
+        var arr : Array[Integer](10);
+        arr.set(Integer(1), Integer(2));
+        arr.set(Integer(2), Integer(3));
+        var result : Integer(arr.get(Integer(1)).Plus(arr.get(Integer(2))));
     end
 end
