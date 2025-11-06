@@ -1,5 +1,6 @@
 %{
 import java.util.*;
+import Lexer.*;
 import Syntaxer.ast.*;
 import Syntaxer.ast.component.*;
 import Syntaxer.ast.declaration.*;
@@ -57,6 +58,7 @@ import Syntaxer.ast.statement.*;
 %token RPAREN   // )
 %token LBRACKET // [
 %token RBRACKET // ]
+%token SEMICOLON // ;
 
 // operator signs
 %token SHORTBODY    // =>
@@ -143,8 +145,8 @@ ClassMember
     ;
 
 FieldDeclaration
-    : VAR IDENTIFIER COLON Expression  {$$ = new FieldDeclaration($2, $4);}
-    | VAR IDENTIFIER IS Expression     {$$ = new FieldDeclaration($2, $4);}
+    : VAR IDENTIFIER COLON Expression SEMICOLON {$$ = new FieldDeclaration($2, $4);}
+    | VAR IDENTIFIER IS Expression SEMICOLON    {$$ = new FieldDeclaration($2, $4);}
     ;
 
 MethodDeclaration
@@ -153,6 +155,12 @@ MethodDeclaration
 
 ConstructorDeclaration
     : THIS Parameters IS Statements END {$$ = new ConstructorDeclaration($2, $4);}
+    | THIS Parameters SHORTBODY Expression {
+        // Convert single expression to return statement
+        ArrayList<Statement> body = new ArrayList<>();
+        body.add(new ReturnStatement($4));
+        $$ = new ConstructorDeclaration($2, body);
+      }
     ;
 
 Parameters
@@ -197,17 +205,17 @@ Statements
     ;
 
 Statement
-    : VarDeclaration   {$$ = $1;}
-    | Assignment       {$$ = $1;}
-    | IfStatement      {$$ = $1;}
-    | WhileStatement   {$$ = $1;}
-    | ReturnStatement  {$$ = $1;}
-    | Expression       {$$ = new ExpressionStatement($1);}
+    : VarDeclaration SEMICOLON   {$$ = $1;}
+    | Assignment SEMICOLON       {$$ = $1;}
+    | IfStatement                {$$ = $1;}
+    | WhileStatement             {$$ = $1;}
+    | ReturnStatement SEMICOLON  {$$ = $1;}
+    | Expression                 {$$ = new ExpressionStatement($1);}
     ;
 
 VarDeclaration
     : VAR IDENTIFIER COLON Expression {$$ = new VariableDeclaration($2, $4);}
-    | VAR IDENTIFIER IS Expression     {$$ = new VariableDeclaration($2, $4);}
+    | VAR IDENTIFIER IS Expression    {$$ = new VariableDeclaration($2, $4);}
     ;
 
 Assignment

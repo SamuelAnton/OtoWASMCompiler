@@ -5,8 +5,8 @@ end
 
 class Tester is
     this() is
-        var c : Calc()
-        c.sum(Integer(1), Integer(2))
-        c.sum(Real(1.5), Real(2.5))
+        var c : Calc();
+        c.sum(Integer(1), Integer(2));
+        c.sum(Real(1.5), Real(2.5));
     end
 end

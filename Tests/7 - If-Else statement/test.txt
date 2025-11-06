@@ -1,9 +1,9 @@
 class Tester is
     this(flag: Boolean) is
         if flag then
-            return
+            return;
         else
-            return
+            return;
         end
     end
 end

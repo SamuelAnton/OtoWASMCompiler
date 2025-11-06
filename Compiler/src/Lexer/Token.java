@@ -32,11 +32,12 @@ public enum Token {
     tkRParen(")", 280), // )
     tkLBracket("[", 281), // [
     tkRBracket("]", 282), // ]
-    tkShortBody("=>", 283), // =>
-    tkAssign(":=", 284), // := Example: n := v
+    tkSemicolon(";", 283), // ;
+    tkShortBody("=>", 284), // =>
+    tkAssign(":=", 285), // := Example: n := v
     // Complex data structures
-    tkArray("Array", 285), // array
-    tkList("List", 286); // list
+    tkArray("Array", 286), // array
+    tkList("List", 287); // list
 
     // Label to automate HashMap fill
     public final String label;

@@ -1,12 +1,12 @@
 class Math is
     method square(x: Integer) : Integer is
-        return x.Mult(x)
+        return x.Mult(x);
     end
 end
 
 class Tester is
     this() is
-        var m : Math()
-        m.square(Integer(4))
+        var m : Math();
+        m.square(Integer(4));
     end
 end
