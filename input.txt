@@ -1,29 +1,6 @@
-class Animal is
-    this(x: Integer) is
-        return
-    end
-    method sound() => 1
-end
-
-class Dog extends Animal is
+class A is
     this() is
-        super(Integer(1))
-    end
-    method sound() => 2
-end
-
-class Polymorphism is
-    method polymorphism(a : Animal) is
-        a.sound()
-    end
-end
-
-class Tester is
-    this() is
-        var x : Animal()
-        var y : Dog()
-        var z : Polymorphism()
-        z.polymorphism(x)
-        z.polymorphism(y)
+        return;
+        var x : Integer(1);
     end
 end

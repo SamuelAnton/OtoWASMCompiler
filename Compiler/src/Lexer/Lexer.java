@@ -46,6 +46,7 @@ public class Lexer {
                 case ']':
                 case ':':
                 case ',':
+                case ';':
                     // deal with operations signs
                     if (word.length() == 0) {
                         // Deal with ":" and ":="
