@@ -145,8 +145,8 @@ ClassMember
     ;
 
 FieldDeclaration
-    : VAR IDENTIFIER COLON Expression SEMICOLON {$$ = new FieldDeclaration($2, $4);}
-    | VAR IDENTIFIER IS Expression SEMICOLON    {$$ = new FieldDeclaration($2, $4);}
+    : VAR IDENTIFIER COLON Expression {$$ = new FieldDeclaration($2, $4);}
+    | VAR IDENTIFIER IS Expression    {$$ = new FieldDeclaration($2, $4);}
     ;
 
 MethodDeclaration
@@ -210,7 +210,7 @@ Statement
     | IfStatement                {$$ = $1;}
     | WhileStatement             {$$ = $1;}
     | ReturnStatement SEMICOLON  {$$ = $1;}
-    | Expression                 {$$ = new ExpressionStatement($1);}
+    | Expression SEMICOLON       {$$ = new ExpressionStatement($1);}
     ;
 
 VarDeclaration
