@@ -8,15 +8,16 @@ import Syntaxer.ast.declaration.ConstructorDeclaration;
 
 public class ClassMemberAnalyzer {
     private final ClassDeclaration cls;
-    private final ArrayList<ConstructorDeclaration> constructors = new ArrayList<>();
-    private final ArrayList<FieldDeclaration> fields = new ArrayList<>();
-    private final ArrayList<MethodDeclaration> methods = new ArrayList<>();
 
     public ClassMemberAnalyzer(ClassDeclaration c) {
         cls = c;
     }
 
     public void analyze() {
+        ArrayList<ConstructorDeclaration> constructors = new ArrayList<>();
+        ArrayList<FieldDeclaration> fields = new ArrayList<>();
+        ArrayList<MethodDeclaration> methods = new ArrayList<>();
+
         for (MemberDeclaration m : cls.members) {
             if (m instanceof ConstructorDeclaration) {
                 constructors.add((ConstructorDeclaration) m);
@@ -29,17 +30,8 @@ public class ClassMemberAnalyzer {
                         "Cannot resolve class member to any existing ones (constructor, field, method).");
             }
         }
-    }
-
-    public ArrayList<ConstructorDeclaration> getConstructors() {
-        return constructors;
-    }
-
-    public ArrayList<FieldDeclaration> getFields() {
-        return fields;
-    }
-
-    public ArrayList<MethodDeclaration> getMethods() {
-        return methods;
+        cls.constructorDeclarations.addAll(constructors);
+        cls.methodDeclarations.addAll(methods);
+        cls.fieldDeclarations.addAll(fields);
     }
 }

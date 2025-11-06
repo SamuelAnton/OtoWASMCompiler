@@ -127,6 +127,14 @@ public class SemanticAnalyser {
         classToMethods.put(c.name, methods);
 
         // Collect constructors
+        HashSet<ConstructorDeclaration> constructors = new HashSet<>();
+        for (ConstructorDeclaration cons : c.constructorDeclarations) {
+            for (ConstructorDeclaration cd : constructors) {
+                if (cd.sameSignature(cons)) {
+                    throw new ValidationException("Several constructors with same ");
+                }
+            }
+        }
 
         // Collect values from super class
         if (c.superClass != null) {
