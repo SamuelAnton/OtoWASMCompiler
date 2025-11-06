@@ -106,30 +106,34 @@ public class DeadLocalRemover {
     }
 
     private void collectUsedInExpression(Expression e, Set<String> used) {
-        // switch (e) {
-        //     case VariableReference vr -> used.add(vr.name);
-        //     case MethodCall mc -> {
-        //         collectUsedInExpression(mc.target, used);
-        //         for (Expression a : mc.args) collectUsedInExpression(a, used);
-        //     }
-        //     case MemberAccess ma -> {
-        //         collectUsedInExpression(ma.target, used);
-        //         collectUsedInExpression(ma.member, used);
-        //     }
-        //     case ConstructorCall cc -> {
-        //         for (Expression a : cc.args) collectUsedInExpression(a, used);
-        //     }
-        //     case null, default -> {
-        //     }
-        // }
+        switch (e) {
+            case VariableReference vr -> used.add(vr.name);
+            case MethodCall mc -> {
+                collectUsedInExpression(mc.target, used);
+                for (Expression a : mc.args) collectUsedInExpression(a, used);
+            }
+            case MemberAccess ma -> {
+                collectUsedInExpression(ma.target, used);
+                collectUsedInExpression(ma.member, used);
+            }
+            case ConstructorCall cc -> {
+                for (Expression a : cc.args) collectUsedInExpression(a, used);
+            }
+            case null, default -> {}
+        }
     }
 
     private boolean isPure(Expression e) {
         if (e == null) return true;
-        return (e instanceof IntegerLiteral
-                || e instanceof RealLiteral
-                || e instanceof BooleanLiteral
-                || e instanceof StringLiteral
-                || (e instanceof ArrayLiteral al && al.size >= 0));
+
+        return switch (e) {
+            case IntegerLiteral il -> true;
+            case RealLiteral rl -> true;
+            case BooleanLiteral bl -> true;
+            case StringLiteral sl -> true;
+            case ArrayLiteral al -> al.size >= 0;
+            case ConstructorCall cc -> cc.args.stream().allMatch(this::isPure);
+            default -> false;
+        };
     }
 }

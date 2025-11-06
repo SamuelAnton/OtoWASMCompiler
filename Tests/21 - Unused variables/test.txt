@@ -1,0 +1,7 @@
+class Tester is
+    method main() : void is
+        var x : Integer(5);
+        var y : Integer(3);
+        var z : Integer(x);
+    end
+end
