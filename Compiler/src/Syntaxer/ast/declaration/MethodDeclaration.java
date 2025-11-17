@@ -21,7 +21,7 @@ public final class MethodDeclaration extends MemberDeclaration {
         this.body = body;
 
         if (returnType == null) {
-            this.returnType = new ReturnType(null);
+            this.returnType = new ReturnType("null");
         } else {
             this.returnType = returnType;
         }

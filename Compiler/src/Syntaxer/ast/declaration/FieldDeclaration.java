@@ -6,7 +6,7 @@ import Syntaxer.ast.expression.Expression;
 
 public final class FieldDeclaration extends MemberDeclaration {
     public final String name;
-    public final Expression init;
+    public Expression init;
     public VariableType type;
 
     public FieldDeclaration(String name, Expression init) {

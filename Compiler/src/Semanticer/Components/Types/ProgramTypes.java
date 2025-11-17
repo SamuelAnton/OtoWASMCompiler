@@ -1,6 +1,10 @@
 package Semanticer.Components.Types;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+
+import Syntaxer.ast.component.ReturnType;
+import Syntaxer.ast.declaration.MethodDeclaration;
 
 public class ProgramTypes {
     public static final VariableType Void = new VariableType("Void", null);
@@ -45,10 +49,18 @@ public class ProgramTypes {
                 return Array;
             case "List":
                 return List;
-            case null:
+            case "null":
                 return Void;
             default:
                 return userTypes.get(type);
+        }
+    }
+
+    static public VariableType toVariableType(ReturnType r) {
+        if (r == null) {
+            return toVariableType("null");
+        } else {
+            return toVariableType(r.name);
         }
     }
 
@@ -71,62 +83,99 @@ public class ProgramTypes {
     }
 
     public void fillInteger() {
-        Integer.fields.put("Min", null);
-        Integer.fields.put("Max", null);
-        Integer.methods.put("toReal", null);
-        Integer.methods.put("toBoolean", null);
-        Integer.methods.put("UnaryMinus", null);
+        Integer.fields.put("Min", Integer);
+        Integer.fields.put("Max", Integer);
+        Integer.methods.put("toReal",
+                new MethodDeclaration("toReal", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Integer.methods.put("toBoolean",
+                new MethodDeclaration("toBoolean", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Integer.methods.put("UnaryMinus",
+                new MethodDeclaration("UnaryMinus", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
 
-        Integer.methods.put("Plus", null);
-        Integer.methods.put("Minus", null);
-        Integer.methods.put("Mult", null);
-        Integer.methods.put("Div", null);
-        Integer.methods.put("Rem", null);
-        Integer.methods.put("Less", null);
-        Integer.methods.put("LessEqual", null);
-        Integer.methods.put("Greater", null);
-        Integer.methods.put("GreaterEqual", null);
-        Integer.methods.put("Equal", null);
+        Integer.methods.put("Plus",
+                new MethodDeclaration("Plus", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Integer.methods.put("Minus",
+                new MethodDeclaration("Minus", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Integer.methods.put("Mult",
+                new MethodDeclaration("Mult", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Integer.methods.put("Div",
+                new MethodDeclaration("Div", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Integer.methods.put("Rem",
+                new MethodDeclaration("Rem", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Integer.methods.put("Less",
+                new MethodDeclaration("Less", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Integer.methods.put("LessEqual",
+                new MethodDeclaration("LessEqual", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Integer.methods.put("Greater",
+                new MethodDeclaration("Greater", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Integer.methods.put("GreaterEqual",
+                new MethodDeclaration("GreaterEqual", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Integer.methods.put("Equal",
+                new MethodDeclaration("Equal", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
     }
 
     private void fillReal() {
-        Real.fields.put("Min", null);
-        Real.fields.put("Max", null);
-        Real.fields.put("Epsilon", null);
+        Real.fields.put("Min", Real);
+        Real.fields.put("Max", Real);
+        Real.fields.put("Epsilon", Real);
 
-        Real.methods.put("toInteger", null);
-        Real.methods.put("UnaryMinus", null);
-        Real.methods.put("Plus", null);
-        Real.methods.put("Minus", null);
-        Real.methods.put("Mult", null);
-        Real.methods.put("Div", null);
-        Real.methods.put("Rem", null);
-        Real.methods.put("Less", null);
-        Real.methods.put("LessEqual", null);
-        Real.methods.put("Greater", null);
-        Real.methods.put("GreaterEqual", null);
-        Real.methods.put("Equal", null);
+        Real.methods.put("toInteger",
+                new MethodDeclaration("toInteger", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Real.methods.put("UnaryMinus",
+                new MethodDeclaration("UnaryMinus", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Real.methods.put("Plus",
+                new MethodDeclaration("Plus", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Real.methods.put("Minus",
+                new MethodDeclaration("Minus", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Real.methods.put("Mult",
+                new MethodDeclaration("Mult", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Real.methods.put("Div",
+                new MethodDeclaration("Div", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Real.methods.put("Rem",
+                new MethodDeclaration("Rem", new ArrayList<>(), new ReturnType("Real"), new ArrayList<>()));
+        Real.methods.put("Less",
+                new MethodDeclaration("Less", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Real.methods.put("LessEqual",
+                new MethodDeclaration("LessEqual", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Real.methods.put("Greater",
+                new MethodDeclaration("Greater", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Real.methods.put("GreaterEqual",
+                new MethodDeclaration("GreaterEqual", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Real.methods.put("Equal",
+                new MethodDeclaration("Equal", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
     }
 
     private void fillBoolean() {
-        Boolean.methods.put("toInteger", null);
-        Boolean.methods.put("Or", null);
-        Boolean.methods.put("And", null);
-        Boolean.methods.put("Xor", null);
-        Boolean.methods.put("Not", null);
+        Boolean.methods.put("toInteger",
+                new MethodDeclaration("toInteger", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Boolean.methods.put("Or",
+                new MethodDeclaration("Or", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Boolean.methods.put("And",
+                new MethodDeclaration("And", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Boolean.methods.put("Xor",
+                new MethodDeclaration("Xor", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
+        Boolean.methods.put("Not",
+                new MethodDeclaration("Not", new ArrayList<>(), new ReturnType("Boolean"), new ArrayList<>()));
     }
 
     private void fillArray() {
-        Array.methods.put("toList", null);
-        Array.methods.put("Length", null);
-        Array.methods.put("get", null);
-        Array.methods.put("set", null);
+        Array.methods.put("toList",
+                new MethodDeclaration("toList", new ArrayList<>(), new ReturnType("List"), new ArrayList<>()));
+        Array.methods.put("Length",
+                new MethodDeclaration("Length", new ArrayList<>(), new ReturnType("Integer"), new ArrayList<>()));
+        Array.methods.put("get",
+                new MethodDeclaration("get", new ArrayList<>(), new ReturnType("null"), new ArrayList<>()));
+        Array.methods.put("set",
+                new MethodDeclaration("set", new ArrayList<>(), new ReturnType("null"), new ArrayList<>()));
     }
 
     private void fillList() {
-        List.methods.put("append", null);
-        List.methods.put("head", null);
-        List.methods.put("tail", null);
+        List.methods.put("append",
+                new MethodDeclaration("append", new ArrayList<>(), new ReturnType("null"), new ArrayList<>()));
+        List.methods.put("head",
+                new MethodDeclaration("head", new ArrayList<>(), new ReturnType("null"), new ArrayList<>()));
+        List.methods.put("tail",
+                new MethodDeclaration("tail", new ArrayList<>(), new ReturnType("null"), new ArrayList<>()));
 
     }
 

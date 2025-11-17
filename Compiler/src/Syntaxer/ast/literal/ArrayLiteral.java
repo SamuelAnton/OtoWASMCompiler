@@ -4,18 +4,18 @@ import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 
 public final class ArrayLiteral extends Expression {
-    public final String type;
+    public final String t;
     public final int size;
 
     public ArrayLiteral(String t, int i) {
         super(-1, -1);
-        this.type = t;
+        this.t = t;
         size = i;
     }
 
     public ArrayLiteral(String t, String s) {
         super(-1, -1);
-        this.type = t;
+        this.t = t;
         int i = 0;
         try {
             i = Integer.parseInt(s);

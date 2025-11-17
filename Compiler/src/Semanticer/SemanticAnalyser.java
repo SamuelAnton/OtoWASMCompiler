@@ -44,9 +44,10 @@ public class SemanticAnalyser {
 
         ProgramOptimizer optimizer = new ProgramOptimizer();
         optimizer.optimize(program);
+        optimizer.optimize(program);
 
-        PrettyPrinter printer = new PrettyPrinter();
-        program.accept(printer);
+        // PrettyPrinter printer = new PrettyPrinter();
+        // program.accept(printer);
     }
 
     // Get classes with check on circular inheritance, same name
@@ -205,6 +206,13 @@ public class SemanticAnalyser {
             throw new ValidationException(
                     "Return statement is not allowed inside constructor of class '" + className + "'");
         }
+        if (stmt instanceof IfStatement) {
+            checkNoReturnRecursive(((IfStatement) stmt).thenBody, className);
+            checkNoReturnRecursive(((IfStatement) stmt).elseBody, className);
+        }
+        if (stmt instanceof WhileStatement) {
+            checkNoReturnRecursive(stmt, className);
+        }
     }
 
     private void checkReturnCoverage() {
@@ -214,7 +222,7 @@ public class SemanticAnalyser {
 
             for (MethodDeclaration m : cls.methodDeclarations) {
                 // skip methods without return type or explicitly "void"
-                if (m.returnType == null || m.returnType.name == null || m.returnType.name.equals("void"))
+                if (m.returnType == null || m.returnType.name == null || m.returnType.name.equals("null"))
                     continue;
 
                 boolean hasReturnPath = hasReturnOnAllPaths(m.body);

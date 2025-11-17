@@ -9,6 +9,7 @@ import Syntaxer.ast.expression.*;
 import Syntaxer.ast.literal.*;
 import Syntaxer.ast.statement.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,8 +22,8 @@ public class SmartChecker implements ASTVisitor<Void> {
     private ClassDeclaration curClass;
     private MethodDeclaration curMethod;
     private ConstructorDeclaration curConstructor;
-    private Boolean inMethod;
-    private Boolean inConstructor;
+    private Boolean inMethod = false;
+    private Boolean inConstructor = false;
 
     private HashMap<String, VariableType> classScope = new HashMap<>();
     private HashMap<String, VariableType> methodScope = new HashMap<>();
@@ -62,9 +63,13 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(FieldDeclaration n) {
+        if (n.init instanceof VariableReference) {
+            n.init = new ConstructorCall(((VariableReference) n.init).name, new ArrayList<>());
+        }
         n.init.accept(this);
         n.type = n.init.type;
         curClass.type.fields.put(n.name, n.type);
+        classScope.put(n.name, n.type);
         return null;
     }
 
@@ -85,6 +90,7 @@ public class SmartChecker implements ASTVisitor<Void> {
                         "Duplication of parameter " + p.name + where());
             }
             paramNames.add(p.name);
+            methodScope.put(p.name, p.type);
         }
 
         forEach(n.body);
@@ -106,6 +112,7 @@ public class SmartChecker implements ASTVisitor<Void> {
                         "Duplication of parameter " + p.name + where());
             }
             paramNames.add(p.name);
+            methodScope.put(p.name, p.type);
         }
 
         forEach(n.body);
@@ -157,11 +164,18 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(ReturnStatement n) {
-        n.value.accept(this);
+        if (n.value != null) {
+            n.value.accept(this);
+        }
 
-        if (!ProgramTypes.canCast(ProgramTypes.toVariableType(curMethod.returnType.name), n.value.type)) {
-            throw new ValidationException("Method " + curMethod.name + " returns value of type "
-                    + curMethod.returnType.name + " not " + n.value.type.type);
+        if (inMethod) {
+            if (!ProgramTypes.canCast(ProgramTypes.toVariableType(curMethod.returnType.name), n.value.type)) {
+                throw new ValidationException("Method " + curMethod.name + " returns value of type "
+                        + curMethod.returnType.name + " not " + n.value.type.type);
+            }
+        }
+        if (inConstructor) {
+            throw new ValidationException("");
         }
         return null;
     }
@@ -179,11 +193,17 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(VariableReference n) {
+        if (n.type != null) {
+            return null;
+        }
         if (methodScope.containsKey(n.name)) {
             n.type = methodScope.get(n.name);
         } else if (classScope.containsKey(n.name)) {
             n.type = classScope.get(n.name);
         } else {
+            for (String s : methodScope.keySet()) {
+                System.out.println(s);
+            }
             throw new ValidationException(
                     "Reference of variable " + n.name + " that has not been initialized" + where());
         }
@@ -193,19 +213,25 @@ public class SmartChecker implements ASTVisitor<Void> {
     @Override
     public Void visit(MemberAccess n) {
         n.target.accept(this);
-        n.member.accept(this);
 
         if (n.member instanceof VariableReference) {
-            if (!n.target.type.fields.containsKey(((VariableReference) n.member).name)
-                    && !n.target.type.methods.containsKey(((VariableReference) n.member).name)) {
+            String name = ((VariableReference) n.member).name;
+            if (n.target.type.fields.containsKey(name)) {
+                n.member.type = n.target.type.fields.get(name);
+            } else if (n.target.type.methods.containsKey(name)) {
+                n.member.type = ProgramTypes.toVariableType(n.target.type.methods.get(name).returnType);
+            } else {
                 throw new ValidationException(
                         "Cannot find field or method " + ((VariableReference) n.member).name + " for type "
                                 + n.target.type.type
                                 + where());
             }
-        } else if (!(n.member instanceof MemberAccess)) {
+        } else if (!((n.member instanceof MemberAccess) || (n.member instanceof ConstructorCall))) {
+            System.out.println(n.member.getClass());
             throw new ValidationException("Not correct member access" + where());
         }
+
+        n.member.accept(this);
         n.type = n.member.type;
         return null;
     }
@@ -279,7 +305,8 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(ArrayLiteral n) {
-        if (ProgramTypes.toVariableType(n.type) == null) {
+        n.type = ProgramTypes.Array;
+        if (ProgramTypes.toVariableType(n.t) == null) {
             throw new ValidationException("Type " + n.type + " is not defined" + where());
         }
         return null;
@@ -287,7 +314,8 @@ public class SmartChecker implements ASTVisitor<Void> {
 
     @Override
     public Void visit(ListLiteral n) {
-        if (ProgramTypes.toVariableType(n.type) == null) {
+        n.type = ProgramTypes.List;
+        if (ProgramTypes.toVariableType(n.t) == null) {
             throw new ValidationException("Type " + n.type + " is not defined" + where());
         }
         return null;

@@ -47,6 +47,10 @@ public class Main {
         System.out.println();
 
         SemanticAnalyser analyser = new SemanticAnalyser(res);
-        analyser.process();
+        try {
+            analyser.process();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

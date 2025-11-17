@@ -1,23 +1,8 @@
-class Animal is
-    method sound() => 1
-end
-
-class Dog extends Animal is
-    method sound() => 2
-end
-
-class Polymorphism is
-    method polymorphism(a : Animal) is
-        a.sound();
-    end
-end
-
 class Tester is
     this() is
-        var x : Animal();
-        var y : Dog();
-        var z : Polymorphism();
-        z.polymorphism(x);
-        z.y.polymorphism(y);
+        var arr : Array[Integer](10);
+        arr.set(Integer(1), Integer(2));
+        arr.set(Integer(2), Integer(3));
+        var result : Integer(arr.get(Integer(1)).Plus(arr.get(Integer(2))));
     end
 end

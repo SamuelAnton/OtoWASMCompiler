@@ -1,9 +1,9 @@
 class Animal is
-    method sound() => 1
+    method sound() : Integer => 1
 end
 
 class Dog extends Animal is
-    method sound() => 2
+    method sound() : Integer => 2
 end
 
 class Polymorphism is
