@@ -1,8 +1,9 @@
-class Tester is
-    this() is
-        var arr : Array[Integer](10);
-        arr.set(Integer(1), Integer(2));
-        arr.set(Integer(2), Integer(3));
-        var result : Integer(arr.get(Integer(1)).Plus(arr.get(Integer(2))));
+class A is
+    method compute(x : Integer) : Integer is
+        if (x.Greater(0)) then
+            return x;
+        else
+            var x : Integer(1);
+        end
     end
 end

@@ -201,9 +201,6 @@ public class SmartChecker implements ASTVisitor<Void> {
         } else if (classScope.containsKey(n.name)) {
             n.type = classScope.get(n.name);
         } else {
-            for (String s : methodScope.keySet()) {
-                System.out.println(s);
-            }
             throw new ValidationException(
                     "Reference of variable " + n.name + " that has not been initialized" + where());
         }
@@ -338,6 +335,7 @@ public class SmartChecker implements ASTVisitor<Void> {
     @Override
     public Void visit(ThenStatement n) {
         forEach(n.body);
+
         return null;
     }
 
