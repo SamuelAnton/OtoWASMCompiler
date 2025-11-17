@@ -4,7 +4,7 @@ import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.parser.Parser;
-
+import Translator.Translator;
 import Semanticer.SemanticAnalyser;
 import Semanticer.Components.Exceptions.ValidationException;
 
@@ -40,11 +40,11 @@ public class Main {
         Parser parser = new Parser(lexer);
         parser.yyparse();
         Program res = parser.getParserResult();
-        PrettyPrinter p = new PrettyPrinter();
-        res.accept(p);
+        // PrettyPrinter p = new PrettyPrinter();
+        // res.accept(p);
 
-        System.out.println();
-        System.out.println();
+        // System.out.println();
+        // System.out.println();
 
         SemanticAnalyser analyser = new SemanticAnalyser(res);
         try {
@@ -52,5 +52,8 @@ public class Main {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+
+        Translator translator = new Translator(res);
+        System.out.println(translator.translate());
     }
 }
