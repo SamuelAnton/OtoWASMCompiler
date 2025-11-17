@@ -268,8 +268,8 @@ ArgumentList
 
 Expression
     : Primary                   {$$ = $1;}
-    | ConstructorInvocation     {$$ = $1;}
     | MethodCall                {$$ = $1;}
+    | ConstructorInvocation     {$$ = $1;}
     | SuperConstructorCall      {$$ = $1;}
     | Expression DOT Expression {$$ = new MemberAccess($1, $3);}
     ;
