@@ -40,8 +40,8 @@ public class Main {
         Parser parser = new Parser(lexer);
         parser.yyparse();
         Program res = parser.getParserResult();
-        // PrettyPrinter p = new PrettyPrinter();
-        // res.accept(p);
+        PrettyPrinter p = new PrettyPrinter();
+        res.accept(p);
 
         // System.out.println();
         // System.out.println();

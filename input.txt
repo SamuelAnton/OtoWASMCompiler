@@ -1,9 +1,16 @@
-class A is
-    method compute(x : Integer) : Integer is
-        if (x.Greater(0)) then
-            return x;
-        else
-            var x : Integer(1);
-        end
+class Counter is
+    var value : Integer()
+
+    this(x: Integer) is
+        value := x;
+    end
+
+    method get() : Integer => value
+end
+
+class Tester is
+    this() is
+        var c : Counter(Integer(10));
+        c.get();
     end
 end

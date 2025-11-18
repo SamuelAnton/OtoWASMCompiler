@@ -11,6 +11,9 @@ public class Translator {
     }
 
     public String translate() {
+        PreTranslator t = new PreTranslator();
+        t.visit(program);
+
         return "";
     }
 
