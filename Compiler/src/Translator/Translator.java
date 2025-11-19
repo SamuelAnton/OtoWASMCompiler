@@ -10,11 +10,14 @@ public class Translator {
         program = p;
     }
 
-    public String translate() {
-        PreTranslator t = new PreTranslator();
-        t.visit(program);
+    public StringBuilder translate() {
+        // PreTranslator t = new PreTranslator();
+        // String res = t.generate(program);
 
-        return "";
+        CodeGenerator c = new CodeGenerator();
+        StringBuilder b = c.generate(program);
+
+        return b;
     }
 
     public void generateFile() {

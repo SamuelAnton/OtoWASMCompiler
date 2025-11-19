@@ -1,0 +1,406 @@
+(module
+  (memory 1)
+  (global $heap_ptr (mut i32) (i32.const 0x1000))
+  (export "memory" (memory 0))
+
+  ;; Virtual Method Tables
+  (data (i32.const 256) "\0d\00\00\00")  ;; vtable size for Integer
+  (data (i32.const 260) "\00\00\00\00")  ;; method 0
+  (data (i32.const 264) "\00\00\00\00")  ;; method 1
+  (data (i32.const 268) "\00\00\00\00")  ;; method 2
+  (data (i32.const 272) "\00\00\00\00")  ;; method 3
+  (data (i32.const 276) "\00\00\00\00")  ;; method 4
+  (data (i32.const 280) "\00\00\00\00")  ;; method 5
+  (data (i32.const 284) "\00\00\00\00")  ;; method 6
+  (data (i32.const 288) "\00\00\00\00")  ;; method 7
+  (data (i32.const 292) "\00\00\00\00")  ;; method 8
+  (data (i32.const 296) "\00\00\00\00")  ;; method 9
+  (data (i32.const 300) "\00\00\00\00")  ;; method 10
+  (data (i32.const 304) "\00\00\00\00")  ;; method 11
+  (data (i32.const 308) "\00\00\00\00")  ;; method 12
+  (data (i32.const 312) "\0c\00\00\00")  ;; vtable size for Real
+  (data (i32.const 316) "\00\00\00\00")  ;; method 0
+  (data (i32.const 320) "\00\00\00\00")  ;; method 1
+  (data (i32.const 324) "\00\00\00\00")  ;; method 2
+  (data (i32.const 328) "\00\00\00\00")  ;; method 3
+  (data (i32.const 332) "\00\00\00\00")  ;; method 4
+  (data (i32.const 336) "\00\00\00\00")  ;; method 5
+  (data (i32.const 340) "\00\00\00\00")  ;; method 6
+  (data (i32.const 344) "\00\00\00\00")  ;; method 7
+  (data (i32.const 348) "\00\00\00\00")  ;; method 8
+  (data (i32.const 352) "\00\00\00\00")  ;; method 9
+  (data (i32.const 356) "\00\00\00\00")  ;; method 10
+  (data (i32.const 360) "\00\00\00\00")  ;; method 11
+  (data (i32.const 364) "\05\00\00\00")  ;; vtable size for Boolean
+  (data (i32.const 368) "\00\00\00\00")  ;; method 0
+  (data (i32.const 372) "\00\00\00\00")  ;; method 1
+  (data (i32.const 376) "\00\00\00\00")  ;; method 2
+  (data (i32.const 380) "\00\00\00\00")  ;; method 3
+  (data (i32.const 384) "\00\00\00\00")  ;; method 4
+  (data (i32.const 388) "\04\00\00\00")  ;; vtable size for Array
+  (data (i32.const 392) "\00\00\00\00")  ;; method 0
+  (data (i32.const 396) "\00\00\00\00")  ;; method 1
+  (data (i32.const 400) "\00\00\00\00")  ;; method 2
+  (data (i32.const 404) "\00\00\00\00")  ;; method 3
+  (data (i32.const 408) "\04\00\00\00")  ;; vtable size for List
+  (data (i32.const 412) "\00\00\00\00")  ;; method 0
+  (data (i32.const 416) "\00\00\00\00")  ;; method 1
+  (data (i32.const 420) "\00\00\00\00")  ;; method 2
+  (data (i32.const 424) "\00\00\00\00")  ;; method 3
+  (data (i32.const 428) "\01\00\00\00")  ;; vtable size for Animal
+  (data (i32.const 432) "\00\00\00\00")  ;; method 0
+  (data (i32.const 436) "\02\00\00\00")  ;; vtable size for Dog
+  (data (i32.const 440) "\00\00\00\00")  ;; method 0
+  (data (i32.const 444) "\00\00\00\00")  ;; method 1
+  (data (i32.const 448) "\01\00\00\00")  ;; vtable size for Polymorphism
+  (data (i32.const 452) "\00\00\00\00")  ;; method 0
+  (data (i32.const 456) "\00\00\00\00")  ;; vtable size for Tester
+
+  (func $Animal.sound (param $this i32) (result i32)
+    (local $temp i32)
+    (local $result i32)
+    ;; Method body for Animal.sound
+    i32.const 1
+    call $create_integer
+    return
+  )
+
+  (data (i32.const 432) "\00\10\00\00")  ;; Animal.sound
+  (func $Dog.sound (param $this i32) (result i32)
+    (local $temp i32)
+    (local $result i32)
+    ;; Method body for Dog.sound
+    i32.const 2
+    call $create_integer
+    return
+  )
+
+  (data (i32.const 444) "\00\11\00\00")  ;; Dog.sound
+  (func $Polymorphism.polymorphism (param $this i32) (param $a i32)
+    (local $temp i32)
+    (local $result i32)
+    ;; Method body for Polymorphism.polymorphism
+    local.get $1
+    ;; Member access - assuming method
+    local.set $temp
+    local.get $temp
+    call $Integer.sound
+    return
+  )
+
+  (data (i32.const 452) "\00\12\00\00")  ;; Polymorphism.polymorphism
+  (func $Tester.constructor (result i32)
+    (local $obj i32)
+    (local $temp i32)
+    ;; Allocate object of size 12
+    i32.const 12
+    call $allocate
+    local.set $obj
+    ;; Initialize VTable pointer
+    local.get $obj
+    i32.const 456
+    i32.store
+    ;; Initialize type ID
+    local.get $obj
+    i32.const 11
+    i32.store offset=4
+    (local $1 i32)
+    call $Animal.constructor
+    local.set $1
+    (local $2 i32)
+    call $Dog.constructor
+    local.set $2
+    (local $3 i32)
+    call $Polymorphism.constructor
+    local.set $3
+    local.get $3
+    ;; Member access - assuming method
+    local.set $temp
+    local.get $1
+    call $method_not_found
+    local.get $3
+    ;; Member access - assuming method
+    local.set $temp
+    local.get $2
+    call $method_not_found
+    local.get $obj
+  )
+
+  (func $Integer.Plus (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.add
+    call $create_integer
+  )
+
+  (func $Integer.Minus (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.sub
+    call $create_integer
+  )
+
+  (func $Integer.Mult (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.mul
+    call $create_integer
+  )
+
+  (func $Integer.Div (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.div_s
+    call $create_integer
+  )
+
+  (func $Integer.Rem (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.rem_s
+    call $create_integer
+  )
+
+  (func $Integer.Less (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.lt_s
+    call $create_integer
+  )
+
+  (func $Integer.LessEqual (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.le_s
+    call $create_integer
+  )
+
+  (func $Integer.Greater (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.gt_s
+    call $create_integer
+  )
+
+  (func $Integer.GreaterEqual (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.ge_s
+    call $create_integer
+  )
+
+  (func $Integer.Equal (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.eq
+    call $create_integer
+  )
+
+  (func $Integer.UnaryMinus (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    i32.const 0
+    i32.sub
+    call $create_integer
+  )
+
+  (func $Integer.toReal (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    f64.convert_i32_s
+    call $create_real
+  )
+
+  (func $Integer.toBoolean (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    i32.const 0
+    i32.ne
+    call $create_boolean
+  )
+
+  (func $Real.Plus (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.add
+    call $create_real
+  )
+
+  (func $Real.Minus (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.sub
+    call $create_real
+  )
+
+  (func $Real.Mult (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.mul
+    call $create_real
+  )
+
+  (func $Real.Div (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.div
+    call $create_real
+  )
+
+  (func $Real.Rem (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.rem
+    call $create_real
+  )
+
+  (func $Real.Less (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.lt
+    call $create_boolean
+  )
+
+  (func $Real.LessEqual (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.le
+    call $create_boolean
+  )
+
+  (func $Real.Greater (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.gt
+    call $create_boolean
+  )
+
+  (func $Real.GreaterEqual (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.ge
+    call $create_boolean
+  )
+
+  (func $Real.Equal (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    local.get $other
+    f64.load offset=8
+    f64.eq
+    call $create_boolean
+  )
+
+  (func $Real.UnaryMinus (param $this i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    f64.neg
+    call $create_real
+  )
+
+  (func $Real.toInteger (param $this i32) (result i32)
+    local.get $this
+    f64.load offset=8
+    i32.trunc_f64_s
+    call $create_integer
+  )
+
+  (func $Boolean.Or (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.or
+    call $create_boolean
+  )
+
+  (func $Boolean.And (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.and
+    call $create_boolean
+  )
+
+  (func $Boolean.Xor (param $this i32) (param $other i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    local.get $other
+    i32.load offset=8
+    i32.xor
+    call $create_boolean
+  )
+
+  (func $Boolean.Not (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    i32.eqz
+    call $create_boolean
+  )
+
+  (func $Boolean.toInteger (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    call $create_integer
+  )
+
+  (func $Array.Length (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    call $create_integer
+  )
+
+  (func $List.size (param $this i32) (result i32)
+    local.get $this
+    i32.load offset=8
+    call $create_integer
+  )
+
+  ;; Program entry point
+  (func $main (export "_start")
+    (local $temp i32)
+    ;; Create instance of Animal
+    call $Animal.constructor
+    drop
+  )
+
+)

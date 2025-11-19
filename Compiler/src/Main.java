@@ -7,9 +7,13 @@ import Syntaxer.parser.Parser;
 import Translator.Translator;
 import Semanticer.SemanticAnalyser;
 import Semanticer.Components.Exceptions.ValidationException;
+import Semanticer.Components.Types.ProgramTypes;
+import Semanticer.Components.Types.VariableType;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class Main {
@@ -51,9 +55,17 @@ public class Main {
             analyser.process();
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            return;
         }
 
         Translator translator = new Translator(res);
-        System.out.println(translator.translate());
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
+            writer.write(translator.translate().toString());
+            writer.close();
+        } catch (IOException e) {
+            System.err.println("IOException");
+        }
     }
 }
