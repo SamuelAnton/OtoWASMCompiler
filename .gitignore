@@ -1,5 +1,6 @@
 /Compiler/.vscode/
 /input.txt
+/output.txt
 /out
 *.xml
 *.iml
