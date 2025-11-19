@@ -948,7 +948,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $data_ptr i32)\n");
         result.append("    (local $new_data_ptr i32)\n");
         result.append("    (local $i i32)\n");
-        result.append("\n");
+        result.append("    \n");
         result.append("    ;; Load current state\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=8\n");
@@ -959,7 +959,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    local.get $this\n");
         result.append("    i32.load offset=16\n");
         result.append("    local.set $data_ptr\n");
-        result.append("\n");
+        result.append("    \n");
         result.append("    ;; Check if we need to resize\n");
         result.append("    local.get $length\n");
         result.append("    local.get $capacity\n");
@@ -970,21 +970,14 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("      i32.const 2\n");
         result.append("      i32.mul\n");
         result.append("      local.set $capacity\n");
-        result.append("\n");
+        result.append("      \n");
         result.append("      ;; Allocate new data array\n");
         result.append("      local.get $capacity\n");
         result.append("      i32.const 4\n");
         result.append("      i32.mul\n");
-        result.append("      call $allocate\n");
+        result.append("      call $allocate\n"); // Correctly nested
         result.append("      local.set $new_data_ptr\n");
-        result.append("\n");
-        result.append("      ;; Immediately set the local data_ptr to the new buffer so subsequent code\n");
-        result.append("      ;; (including the copy loop) can rely on it. Previously we attempted to\n");
-        result.append("      ;; set data_ptr after doing stores that consumed the value, producing\n");
-        result.append("      ;; a stack underflow (local.set with nothing on the stack).\n");
-        result.append("      local.get $new_data_ptr\n");
-        result.append("      local.set $data_ptr\n");
-        result.append("\n");
+        result.append("      \n");
         result.append("      ;; Copy old data\n");
         result.append("      i32.const 0\n");
         result.append("      local.set $i\n");
@@ -1012,17 +1005,18 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("          br $copy_loop\n");
         result.append("        end\n");
         result.append("      end\n");
-        result.append("\n");
-        result.append("      ;; Update list state in the object\n");
+        result.append("      \n");
+        result.append("      ;; Update list state\n");
         result.append("      local.get $this\n");
         result.append("      local.get $capacity\n");
         result.append("      i32.store offset=12\n");
         result.append("      local.get $this\n");
         result.append("      local.get $new_data_ptr\n");
         result.append("      i32.store offset=16\n");
-        result.append("      ;; Note: data_ptr local already set above\n");
+        result.append("      local.get $new_data_ptr\n"); // Use the new pointer
+        result.append("      local.set $data_ptr\n");
         result.append("    end\n");
-        result.append("\n");
+        result.append("    \n");
         result.append("    ;; Append the value\n");
         result.append("    local.get $data_ptr\n");
         result.append("    local.get $length\n");
@@ -1031,7 +1025,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.add\n");
         result.append("    local.get $value\n");
         result.append("    i32.store\n");
-        result.append("\n");
+        result.append("    \n");
         result.append("    ;; Update length and size\n");
         result.append("    local.get $this\n");
         result.append("    local.get $length\n");
@@ -1043,7 +1037,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.const 1\n");
         result.append("    i32.add\n");
         result.append("    i32.store offset=20\n");
-        result.append("\n");
+        result.append("    \n");
         result.append("    ;; Return the list for chaining\n");
         result.append("    local.get $this\n");
         result.append("  )\n\n");
@@ -1155,21 +1149,31 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  (func $print_integer (param $value i32)\n");
         result.append("    ;; This would interface with WASM host environment for printing\n");
         result.append("    ;; For now, it's a no-op\n");
+        result.append("    local.get $value\n");
+        result.append("    drop\n");
         result.append("  )\n\n");
 
         result.append("  (func $print_real (param $value i32)\n");
         result.append("    ;; This would interface with WASM host environment for printing\n");
         result.append("    ;; For now, it's a no-op\n");
+        result.append("    local.get $value\n");
+        result.append("    drop\n");
         result.append("  )\n\n");
 
         result.append("  (func $print_boolean (param $value i32)\n");
         result.append("    ;; This would interface with WASM host environment for printing\n");
         result.append("    ;; For now, it's a no-op\n");
+        result.append("    local.get $value\n");
+        result.append("    drop\n");
         result.append("  )\n\n");
 
         result.append("  (func $print_string (param $str i32) (param $len i32)\n");
         result.append("    ;; This would interface with WASM host environment for printing\n");
         result.append("    ;; For now, it's a no-op\n");
+        result.append("    local.get $str\n");
+        result.append("    drop\n");
+        result.append("    local.get $len\n");
+        result.append("    drop\n");
         result.append("  )\n\n");
 
         // Memory management utilities
@@ -1240,25 +1244,25 @@ public class CodeGenerator implements ASTVisitor<Void> {
             String typeName = targetType.type;
             List<String> methods = methodTables.get(typeName);
 
-            // If we have a method table for the static type and it contains the method,
-            // emit a direct call to that implementation.
-            if (methods != null && methods.contains(typeName + "." + methodName)) {
+            String fullMethodName = typeName + "." + methodName;
+            if (methods != null && methods.contains(fullMethodName)) {
                 result.append("    local.get $temp\n");
-                result.append("    call $" + typeName + "." + methodName + "\n");
+                result.append("    call $" + fullMethodName + "\n");
                 methodFound = true;
-            } else if (isStandardLibraryType(typeName)) {
-                // Check standard library methods
-                List<String> stdMethods = methodTables.get(typeName);
-                if (stdMethods != null && stdMethods.contains(typeName + "." + methodName)) {
-                    result.append("    local.get $temp\n");
-                    result.append("    call $" + typeName + "." + methodName + "\n");
-                    methodFound = true;
-                }
             }
         }
 
         if (!methodFound) {
-            // Method not found - consume the receiver and arguments, then push null
+            // If the method was not found, we still need to consume the arguments
+            // that were pushed onto the stack. 'this' is already in a local.
+            for (int i = 0; i < node.args.size(); i++) {
+                result.append("    drop\n");
+            }
+            // And we must drop the receiver object itself.
+            result.append("    local.get $temp\n");
+            result.append("    drop\n");
+
+            // Now, call method_not_found, which pushes a null result.
             result.append("    ;; Method not found: " + methodName + "\n");
             result.append("    call $method_not_found\n");
         }
