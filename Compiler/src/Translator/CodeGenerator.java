@@ -283,13 +283,16 @@ public class CodeGenerator implements ASTVisitor<Void> {
         List<String> methods = new ArrayList<>();
 
         // Add methods from parent class first
-        if (cls.superClass != null) {
+        if (cls.superClass != null && methodTables.containsKey(cls.superClass.name)) {
             methods.addAll(methodTables.get(cls.superClass.name));
         }
 
-        // Add own methods
+        // Add/overwrite with own methods
         for (MethodDeclaration method : cls.methodDeclarations) {
-            methods.add(cls.name + "." + method.name);
+            // NOTE: This simple version doesn't handle overriding correctly with overloading.
+            // A full implementation would need to match signatures.
+            String mangledName = getMangledMethodName(cls.name, method.name, method.params);
+            methods.add(mangledName);
         }
 
         return methods;
@@ -298,7 +301,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
     private void generateMethod(MethodDeclaration method) {
         currentMethod = method;
 
-        String funcName = currentClass.name + "." + method.name;
+        String funcName = getMangledMethodName(currentClass.name, method.name, method.params);
         functionAddresses.put(funcName, currentFunctionAddress);
         currentFunctionAddress += 0x100; // Reserve space for function
 
@@ -1191,6 +1194,14 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  )\n\n");
     }
 
+    private String getMangledMethodName(String className, String methodName, List<Param> params) {
+        StringBuilder mangledName = new StringBuilder(className + "." + methodName);
+        for (Param param : params) {
+            mangledName.append("_").append(param.t.name);
+        }
+        return mangledName.toString();
+    }
+
     private void generateEntryPoint(Program program) {
         result.append("  ;; Program entry point\n");
         result.append("  (func $main (export \"_start\")\n");
@@ -1242,27 +1253,33 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         if (targetType != null && targetType.type != null) {
             String typeName = targetType.type;
-            List<String> methods = methodTables.get(typeName);
 
-            String fullMethodName = typeName + "." + methodName;
-            if (methods != null && methods.contains(fullMethodName)) {
+            // Create a list of Param objects from the method call arguments for mangling
+            List<Param> argParams = new ArrayList<>();
+            for (Expression arg : node.args) {
+                // FIX: Create a new Type object for the second argument of the Param constructor.
+                // The parameter name itself doesn't matter for mangling, so we pass an empty string.
+                argParams.add(new Param("", new Type(arg.type.type)));
+            }
+            String mangledMethodName = getMangledMethodName(typeName, methodName, argParams);
+
+            List<String> methods = methodTables.get(typeName);
+            if (methods != null && methods.contains(mangledMethodName)) {
                 result.append("    local.get $temp\n");
-                result.append("    call $" + fullMethodName + "\n");
+                result.append("    call $" + mangledMethodName + "\n");
                 methodFound = true;
             }
         }
 
         if (!methodFound) {
-            // If the method was not found, we still need to consume the arguments
-            // that were pushed onto the stack. 'this' is already in a local.
+            // If the method was not found, consume receiver and arguments from the stack
             for (int i = 0; i < node.args.size(); i++) {
                 result.append("    drop\n");
             }
-            // And we must drop the receiver object itself.
             result.append("    local.get $temp\n");
             result.append("    drop\n");
 
-            // Now, call method_not_found, which pushes a null result.
+            // Push a null result
             result.append("    ;; Method not found: " + methodName + "\n");
             result.append("    call $method_not_found\n");
         }
@@ -1347,11 +1364,27 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
     @Override
     public Void visit(ConstructorCall node) {
-        for (Expression arg : node.args) {
-            arg.accept(this);
+        // Handle standard library types, which have creators, not constructors.
+        // The actual creation is handled by the literal visitors (e.g., visit(IntegerLiteral)).
+        // Here, we just need to ensure the argument expression is visited.
+        switch (node.className) {
+            case "Integer":
+            case "Real":
+            case "Boolean":
+                // The argument (e.g., the '1' in 'new Integer(1)') is an expression.
+                // Visiting it will trigger the correct literal visitor, which generates
+                // the const value and the call to the creator function. We don't need
+                // to add another creator call here.
+                node.args.get(0).accept(this);
+                return null;
+            default:
+                // For user-defined classes, call the actual constructor as before.
+                for (Expression arg : node.args) {
+                    arg.accept(this);
+                }
+                result.append("    call $" + node.className + ".constructor\n");
+                return null;
         }
-        result.append("    call $" + node.className + ".constructor\n");
-        return null;
     }
 
     @Override
