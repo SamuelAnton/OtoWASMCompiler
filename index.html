@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WASM Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+<h1>WebAssembly Test Runner</h1>
+<div id="output">Loading WASM module...</div>
+
+<script>
+    async function runWASMTest() {
+        const output = document.getElementById('output');
+
+        try {
+            output.innerHTML = '<div class="info">Loading WASM module...</div>';
+
+            // Load and instantiate the WASM module
+            const response = await fetch('output.wasm');
+            const bytes = await response.arrayBuffer();
+            const results = await WebAssembly.instantiate(bytes);
+            const instance = results.instance;
+
+            output.innerHTML += '<div class="success">✓ WASM module loaded successfully!</div>';
+
+            // Test 1: Check if functions exist
+            output.innerHTML += '<div class="info">Testing exported functions...</div>';
+
+            if (typeof instance.exports._start !== 'function') {
+                throw new Error('_start function not found');
+            }
+            output.innerHTML += '<div class="success">✓ _start function found</div>';
+
+            if (typeof instance.exports.get_heap_size !== 'function') {
+                throw new Error('get_heap_size function not found');
+            }
+            output.innerHTML += '<div class="success">✓ get_heap_size function found</div>';
+
+            // Test 2: Check initial heap state
+            const initialHeap = instance.exports.get_heap_size();
+            output.innerHTML += `<div class="info">Initial heap size: ${initialHeap} bytes</div>`;
+
+            // Test 3: Run the main program
+            output.innerHTML += '<div class="info">Executing program (_start)...</div>';
+            instance.exports._start();
+            output.innerHTML += '<div class="success">✓ Program executed successfully</div>';
+
+            // Test 4: Check heap usage after execution
+            const finalHeap = instance.exports.get_heap_size();
+            output.innerHTML += `<div class="info">Final heap size: ${finalHeap} bytes</div>`;
+
+            // Test 5: Calculate memory used
+            const memoryUsed = finalHeap - initialHeap;
+            output.innerHTML += `<div class="info">Memory allocated during execution: ${memoryUsed} bytes</div>`;
+
+            // Test 6: Check if memory was actually used (basic sanity check)
+            if (memoryUsed > 0) {
+                output.innerHTML += '<div class="success">✓ Memory allocation detected - objects were created</div>';
+            } else {
+                output.innerHTML += '<div class="error">⚠ No memory allocation detected - program may not have created objects</div>';
+            }
+
+            // Test 7: Check WebAssembly Memory
+            if (instance.exports.memory) {
+                const memory = instance.exports.memory;
+                output.innerHTML += `<div class="info">WebAssembly Memory: ${memory.buffer.byteLength} bytes total</div>`;
+            }
+
+            // Final summary
+            output.innerHTML += '<div class="success"><br><strong>✓ All tests completed successfully!</strong></div>';
+            output.innerHTML += `<div class="info">Program executed and allocated ${memoryUsed} bytes of memory.</div>`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        }
+    }
+
+    // Run the test when page loads
+    runWASMTest();
+</script>
+</body>
+</html>
