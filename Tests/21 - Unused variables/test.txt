@@ -1,5 +1,5 @@
 class Tester is
-    method main() : void is
+    method main() is
         var x : Integer(5);
         var y : Integer(3);
         var z : Integer(x);

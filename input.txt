@@ -1,8 +1,9 @@
-class Tester is
-    this() is
-        var i : Integer(0);
-        while i.Less(Integer(5)) loop
-            i := i.Plus(Integer(1));
+class Math is
+    method square(x: Integer) : Integer is
+        if (false) then
+            return Integer(1);
+        else
+            return Integer(2);
         end
     end
 end

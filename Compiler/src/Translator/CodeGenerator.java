@@ -7,10 +7,7 @@ import Syntaxer.ast.statement.*;
 import Syntaxer.ast.literal.*;
 import Syntaxer.ast.component.*;
 import Semanticer.Components.Types.VariableType;
-import Semanticer.Components.Types.ProgramTypes;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class CodeGenerator implements ASTVisitor<Void> {
@@ -94,7 +91,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
     result.append("    call $allocate\n");
     result.append("    local.set $obj\n");
 
-    // Initialize header (vtable pointer + type id)
     result.append("    local.get $obj\n");
     result.append("    i32.const " + vtableOffsets.get(cls.name) + "\n");
     result.append("    i32.store\n");
@@ -102,7 +98,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
     result.append("    i32.const " + typeIds.get(cls.name) + "\n");
     result.append("    i32.store offset=4\n");
 
-    // Initialize fields to null/0
     Map<String, Integer> offsets = fieldOffsets.get(cls.name);
     if (offsets != null) {
         for (Map.Entry<String, Integer> e : offsets.entrySet()) {
@@ -119,6 +114,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
     // Update VTable
     updateVTable(cls.name, funcName);
 }
+ 
     private void initializeStandardTypes() {
         typeIds.put("Integer", nextTypeId++);
         typeIds.put("Real", nextTypeId++);
@@ -218,7 +214,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  (data (i32.const " + vtableStart + ") \"\\" +
                 String.format("%02x", methods.size()) + "\\00\\00\\00\")  ;;; vtable size for " + typeName + "\n");
 
-        // Reserve space for method pointers (will be filled as we generate functions)
+        // Reserve space for method pointers
         for (int i = 0; i < methods.size(); i++) {
             result.append("  (data (i32.const " + (vtableStart + 4 + i * 4) + ") \"\\00\\00\\00\\00\")  ;;; method " + i
                     + "\n");
@@ -290,9 +286,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         // Add/overwrite with own methods
         for (MethodDeclaration method : cls.methodDeclarations) {
-            // NOTE: This simple version doesn't handle overriding correctly with
-            // overloading.
-            // A full implementation would need to match signatures.
             String mangledName = getMangledMethodName(cls.name, method.name, method.params);
             methods.add(mangledName);
         }
@@ -309,7 +302,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         result.append("  (func $" + funcName);
 
-        // Parameters - first parameter is always 'this'
+        // first parameter is always 'this'
         result.append(" (param $this i32)");
         for (Param param : method.params) {
             result.append(" (param $" + param.name + " i32)");
@@ -322,7 +315,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         result.append("\n");
 
-        // Collect body variable declarations so we can emit (local ...) at top
+        // Collect body variable declarations for local
         List<VariableDeclaration> bodyVariables = new ArrayList<>();
         for (Statement stmt : method.body) {
             if (stmt instanceof VariableDeclaration) {
@@ -338,8 +331,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $temp i32)\n");
         result.append("    (local $result i32)\n");
 
-        // Map parameters to sentinel (-1) so we will emit the param name (not a numeric
-        // local)
         localIndices.put("this", -1);
         for (Param param : method.params) {
             localIndices.put(param.name, -1);
@@ -399,13 +390,11 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
     result.append("  (func $" + funcName);
 
-    // Parameters
     for (Param param : ctor.params) {
         result.append(" (param $" + param.name + " i32)");
     }
     result.append(" (result i32)\n");
 
-    // Collect body variable declarations first
     List<VariableDeclaration> bodyVariables = new ArrayList<>();
     for (Statement stmt : ctor.body) {
         if (stmt instanceof VariableDeclaration) {
@@ -433,7 +422,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
         localCounter++;
     }
 
-    // Rest of the constructor code remains the same...
     // Allocate object
     int objectSize = calculateObjectSize(currentClass);
     result.append("    ;;; Allocate object of size " + objectSize + "\n");
@@ -979,7 +967,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("      local.get $capacity\n");
         result.append("      i32.const 4\n");
         result.append("      i32.mul\n");
-        result.append("      call $allocate\n"); // Correctly nested
+        result.append("      call $allocate\n");
         result.append("      local.set $new_data_ptr\n");
         result.append("      \n");
         result.append("      ;;; Copy old data\n");
@@ -1017,7 +1005,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("      local.get $this\n");
         result.append("      local.get $new_data_ptr\n");
         result.append("      i32.store offset=16\n");
-        result.append("      local.get $new_data_ptr\n"); // Use the new pointer
+        result.append("      local.get $new_data_ptr\n");
         result.append("      local.set $data_ptr\n");
         result.append("    end\n");
         result.append("    \n");
@@ -1208,7 +1196,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  (func $main (export \"_start\")\n");
         result.append("    (local $temp i32)\n");
 
-        // For now, create an instance of the first class and call its constructor
         if (!program.classes.isEmpty()) {
             ClassDeclaration firstClass = program.classes.get(0);
             result.append("    ;;; Create instance of " + firstClass.name + "\n");
@@ -1226,7 +1213,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
                 result.append("    drop\n");
             }
         } else {
-            // No user classes, create a simple integer
             result.append("    i32.const 42\n");
             result.append("    call $create_integer\n");
             result.append("    drop\n");
@@ -1235,7 +1221,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  )\n\n");
     }
 
-    // Visitor implementations with proper method resolution
     @Override
     public Void visit(MethodCall node) {
         // Evaluate receiver and store it
@@ -1255,13 +1240,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
         if (targetType != null && targetType.type != null) {
             String typeName = targetType.type;
 
-            // Create a list of Param objects from the method call arguments for mangling
             List<Param> argParams = new ArrayList<>();
             for (Expression arg : node.args) {
-                // FIX: Create a new Type object for the second argument of the Param
-                // constructor.
-                // The parameter name itself doesn't matter for mangling, so we pass an empty
-                // string.
                 argParams.add(new Param("", new Type(arg.type.type)));
             }
             String mangledMethodName = getMangledMethodName(typeName, methodName, argParams);
@@ -1303,22 +1283,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
         return "unknown";
     }
 
-    private boolean isStandardLibraryType(String typeName) {
-        return typeName.equals("Integer") || typeName.equals("Real") ||
-                typeName.equals("Boolean") || typeName.equals("Array") ||
-                typeName.equals("List");
-    }
-
-    private int findMethodIndex(String typeName, String methodName, int argCount) {
-        List<String> methods = methodTables.get(typeName);
-        if (methods != null) {
-            String fullMethodName = typeName + "." + methodName;
-            return methods.indexOf(fullMethodName);
-        }
-        return -1;
-    }
-
-    // Other visitor methods remain the same as in previous version
     @Override
     public Void visit(Program node) {
         return null;
@@ -1367,10 +1331,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
     @Override
     public Void visit(ConstructorCall node) {
-        // Handle standard library types, which have creators, not constructors.
-        // The actual creation is handled by the literal visitors (e.g.,
-        // visit(IntegerLiteral)).
-        // Here, we just need to ensure the argument expression is visited.
         switch (node.className) {
             case "Integer":
                 if (node.args.isEmpty()) {
@@ -1384,14 +1344,9 @@ public class CodeGenerator implements ASTVisitor<Void> {
                 if (node.args.isEmpty()) {
                     node.args.add(new BooleanLiteral(false));
                 }
-                // The argument (e.g., the '1' in 'new Integer(1)') is an expression.
-                // Visiting it will trigger the correct literal visitor, which generates
-                // the const value and the call to the creator function. We don't need
-                // to add another creator call here.
                 node.args.get(0).accept(this);
                 return null;
             default:
-                // For user-defined classes, call the actual constructor as before.
                 for (Expression arg : node.args) {
                     arg.accept(this);
                 }
@@ -1415,7 +1370,6 @@ public class CodeGenerator implements ASTVisitor<Void> {
                 }
             }
         }
-        // If field not found, try as method (for chained calls)
         result.append("    ;;; Member access - assuming method\n");
         return null;
     }
@@ -1496,7 +1450,6 @@ public Void visit(VariableReference node) {
             result.append("    local.get $" + localIndex + "\n");
         }
     } else {
-        // Assume it's a field - use $obj in constructors, $this in methods
         if (currentMethod == null && currentClass != null) {
             // Constructor
             result.append("    local.get $obj\n");
@@ -1577,19 +1530,8 @@ public Void visit(VariableReference node) {
 
     @Override
     public Void visit(VariableDeclaration node) {
-        // variable locals are declared at the top of the enclosing
-        // function/constructor.
-        // Here we only initialize them and store the initial value into the predeclared
-        // local index.
         Integer localIndex = localIndices.get(node.name);
         if (localIndex == null) {
-            // Fallback: if we haven't predeclared the local (shouldn't happen if
-            // functions/ctors collect
-            // their body variables up-front), allocate a slot now but DO NOT emit a local
-            // declaration here
-            // (WASM requires local declarations before instructions). This fallback keeps
-            // generation
-            // running but it's best to ensure functions predeclare their locals.
             localIndex = localCounter;
             localIndices.put(node.name, localIndex);
             localCounter++;
@@ -1608,11 +1550,8 @@ public Void visit(VariableReference node) {
 
     @Override
     public Void visit(ExpressionStatement node) {
-        // Evaluate the expression
         node.value.accept(this);
 
-        // Only drop if the expression actually produces a value
-        // Some expressions like assignments don't leave values on stack
         if (producesExpressionValue(node.value)) {
             result.append("    drop\n");
         }
@@ -1620,7 +1559,6 @@ public Void visit(VariableReference node) {
     }
 
     private boolean producesExpressionValue(Expression expr) {
-        // These expression types typically produce values on the stack:
         return expr instanceof MethodCall ||
                 expr instanceof ConstructorCall ||
                 expr instanceof IntegerLiteral ||
@@ -1631,7 +1569,6 @@ public Void visit(VariableReference node) {
                 expr instanceof ThisExpression ||
                 expr instanceof ArrayLiteral ||
                 expr instanceof ListLiteral;
-        // Note: AssignmentStatement typically doesn't leave values on stack
     }
 
     @Override
