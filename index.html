@@ -27,7 +27,7 @@
             const results = await WebAssembly.instantiate(bytes);
             const instance = results.instance;
 
-            output.innerHTML += '<div class="success">✓ WASM module loaded successfully!</div>';
+            output.innerHTML += '<div class="success">WASM module loaded successfully!</div>';
 
             // Test 1: Check if functions exist
             output.innerHTML += '<div class="info">Testing exported functions...</div>';
@@ -35,12 +35,12 @@
             if (typeof instance.exports._start !== 'function') {
                 throw new Error('_start function not found');
             }
-            output.innerHTML += '<div class="success">✓ _start function found</div>';
+            output.innerHTML += '<div class="success">_start function found</div>';
 
             if (typeof instance.exports.get_heap_size !== 'function') {
                 throw new Error('get_heap_size function not found');
             }
-            output.innerHTML += '<div class="success">✓ get_heap_size function found</div>';
+            output.innerHTML += '<div class="success">get_heap_size function found</div>';
 
             // Test 2: Check initial heap state
             const initialHeap = instance.exports.get_heap_size();
@@ -49,7 +49,7 @@
             // Test 3: Run the main program
             output.innerHTML += '<div class="info">Executing program (_start)...</div>';
             instance.exports._start();
-            output.innerHTML += '<div class="success">✓ Program executed successfully</div>';
+            output.innerHTML += '<div class="success">Program executed successfully</div>';
 
             // Test 4: Check heap usage after execution
             const finalHeap = instance.exports.get_heap_size();
@@ -61,7 +61,7 @@
 
             // Test 6: Check if memory was actually used (basic sanity check)
             if (memoryUsed > 0) {
-                output.innerHTML += '<div class="success">✓ Memory allocation detected - objects were created</div>';
+                output.innerHTML += '<div class="success">Memory allocation detected - objects were created</div>';
             } else {
                 output.innerHTML += '<div class="error">⚠ No memory allocation detected - program may not have created objects</div>';
             }
@@ -73,7 +73,7 @@
             }
 
             // Final summary
-            output.innerHTML += '<div class="success"><br><strong>✓ All tests completed successfully!</strong></div>';
+            output.innerHTML += '<div class="success"><br><strong>All tests completed successfully!</strong></div>';
             output.innerHTML += `<div class="info">Program executed and allocated ${memoryUsed} bytes of memory.</div>`;
 
         } catch (error) {

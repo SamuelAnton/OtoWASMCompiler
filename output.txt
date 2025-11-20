@@ -47,16 +47,16 @@
   (data (i32.const 416) "\00\00\00\00")  ;;; method 1
   (data (i32.const 420) "\00\00\00\00")  ;;; method 2
   (data (i32.const 424) "\00\00\00\00")  ;;; method 3
-  (data (i32.const 428) "\00\00\00\00")  ;;; vtable size for Point
-  (data (i32.const 432) "\00\00\00\00")  ;;; vtable size for Tester
+  (data (i32.const 428) "\00\00\00\00")  ;;; vtable size for Tester
 
 
   ;; -------Translated Program start--------
-  (func $Point.constructor (param $a i32) (param $b i32) (result i32)
+  (func $Tester.constructor (result i32)
     (local $obj i32)
     (local $temp i32)
-    ;;; Allocate object of size 16
-    i32.const 16
+    (local $0 i32)
+    ;;; Allocate object of size 12
+    i32.const 12
     call $allocate
     local.set $obj
     ;;; Initialize VTable pointer
@@ -67,45 +67,43 @@
     local.get $obj
     i32.const 8
     i32.store offset=4
-    ;;; Initialize field x
-    local.get $obj
     i32.const 0
     call $create_integer
-    i32.store offset=8
-    ;;; Initialize field y
-    local.get $obj
-    i32.const 0
+    local.set $0
+    block $end_1
+      loop $loop_0
+    local.get $0
+    ;;; Member access - assuming method
+    local.set $temp
+    i32.const 5
     call $create_integer
-    i32.store offset=12
-    local.get $this
-    local.get $this
-    i32.store offset=8
-    local.get $this
-    local.get $this
-    i32.store offset=12
-    local.get $obj
-  )
-
-  (func $Tester.constructor (result i32)
-    (local $obj i32)
-    (local $temp i32)
-    ;;; Allocate object of size 12
-    i32.const 12
-    call $allocate
-    local.set $obj
-    ;;; Initialize VTable pointer
-    local.get $obj
-    i32.const 432
-    i32.store
-    ;;; Initialize type ID
-    local.get $obj
-    i32.const 9
-    i32.store offset=4
+    drop
+    local.get $temp
+    drop
+    ;;; Method not found: Less
+    call $method_not_found
+      i32.eqz
+      br_if $end_1
+    local.get $0
+    ;;; Member access - assuming method
+    local.set $temp
+    i32.const 1
+    call $create_integer
+    drop
+    local.get $temp
+    drop
+    ;;; Method not found: Plus
+    call $method_not_found
+    local.set $0
+      br $loop_0
+    end
+    end
     local.get $obj
   )
 
 
   ;; -------Translated Program end--------
+
   (func $Integer.Plus (param $this i32) (param $other i32) (result i32)
     local.get $this
     i32.load offset=8
@@ -895,10 +893,8 @@
   ;; Program entry point
   (func $main (export "_start")
     (local $temp i32)
-    ;;; Create instance of Point
-    i32.const 0  ;;; default argument 0
-    i32.const 0  ;;; default argument 1
-    call $Point.constructor
+    ;;; Create instance of Tester
+    call $Tester.constructor
     drop
   )
 
