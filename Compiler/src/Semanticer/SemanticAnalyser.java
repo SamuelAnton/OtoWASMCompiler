@@ -211,7 +211,8 @@ public class SemanticAnalyser {
             checkNoReturnRecursive(((IfStatement) stmt).elseBody, className);
         }
         if (stmt instanceof WhileStatement) {
-            checkNoReturnRecursive(stmt, className);
+            for (Statement s : ((WhileStatement) stmt).body)
+                checkNoReturnRecursive(s, className);
         }
     }
 

@@ -48,6 +48,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         generateVTables(program);
 
         // Generate functions for all methods
+        result.append("\n  ;; -------Translated Program start--------\n");
         for (ClassDeclaration cls : program.classes) {
             currentClass = cls;
             for (MethodDeclaration method : cls.methodDeclarations) {
@@ -62,6 +63,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
                 }
             }
         }
+        result.append("\n  ;; -------Translated Program end--------\n\n");
 
         // Generate standard library methods
         generateStandardLibraryMethods();
@@ -87,7 +89,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $temp i32)\n");
 
         int objectSize = calculateObjectSize(cls);
-        result.append("    ;; Allocate object of size " + objectSize + "\n");
+        result.append("    ;;; Allocate object of size " + objectSize + "\n");
         result.append("    i32.const " + objectSize + "\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
@@ -101,9 +103,9 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.store offset=4\n");
 
         // Initialize fields to null/0
-        Map<String,Integer> offsets = fieldOffsets.get(cls.name);
+        Map<String, Integer> offsets = fieldOffsets.get(cls.name);
         if (offsets != null) {
-            for (Map.Entry<String,Integer> e : offsets.entrySet()) {
+            for (Map.Entry<String, Integer> e : offsets.entrySet()) {
                 int fieldOffset = e.getValue();
                 result.append("    local.get $obj\n");
                 result.append("    i32.const 0\n");
@@ -215,11 +217,11 @@ public class CodeGenerator implements ASTVisitor<Void> {
     private void generateVTableData(String typeName, int vtableStart, List<String> methods) {
         // Write VTable size
         result.append("  (data (i32.const " + vtableStart + ") \"\\" +
-                String.format("%02x", methods.size()) + "\\00\\00\\00\")  ;; vtable size for " + typeName + "\n");
+                String.format("%02x", methods.size()) + "\\00\\00\\00\")  ;;; vtable size for " + typeName + "\n");
 
         // Reserve space for method pointers (will be filled as we generate functions)
         for (int i = 0; i < methods.size(); i++) {
-            result.append("  (data (i32.const " + (vtableStart + 4 + i * 4) + ") \"\\00\\00\\00\\00\")  ;; method " + i
+            result.append("  (data (i32.const " + (vtableStart + 4 + i * 4) + ") \"\\00\\00\\00\\00\")  ;;; method " + i
                     + "\n");
         }
     }
@@ -289,7 +291,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         // Add/overwrite with own methods
         for (MethodDeclaration method : cls.methodDeclarations) {
-            // NOTE: This simple version doesn't handle overriding correctly with overloading.
+            // NOTE: This simple version doesn't handle overriding correctly with
+            // overloading.
             // A full implementation would need to match signatures.
             String mangledName = getMangledMethodName(cls.name, method.name, method.params);
             methods.add(mangledName);
@@ -336,7 +339,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $temp i32)\n");
         result.append("    (local $result i32)\n");
 
-        // Map parameters to sentinel (-1) so we will emit the param name (not a numeric local)
+        // Map parameters to sentinel (-1) so we will emit the param name (not a numeric
+        // local)
         localIndices.put("this", -1);
         for (Param param : method.params) {
             localIndices.put(param.name, -1);
@@ -350,7 +354,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         }
 
         // Method body comment
-        result.append("    ;; Method body for " + funcName + "\n");
+        result.append("    ;;; Method body for " + funcName + "\n");
 
         // Generate body statements
         for (Statement stmt : method.body) {
@@ -384,7 +388,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
                         String.format("%02x", (funcAddress >> 8) & 0xFF) + "\\" +
                         String.format("%02x", (funcAddress >> 16) & 0xFF) + "\\" +
                         String.format("%02x", (funcAddress >> 24) & 0xFF) +
-                        "\")  ;; " + methodName + "\n");
+                        "\")  ;;; " + methodName + "\n");
             }
         }
     }
@@ -402,7 +406,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
         }
         result.append(" (result i32)\n");
 
-        // Collect body variable declarations first (so we can declare locals at the top)
+        // Collect body variable declarations first (so we can declare locals at the
+        // top)
         List<VariableDeclaration> bodyVariables = new ArrayList<>();
         for (Statement stmt : ctor.body) {
             if (stmt instanceof VariableDeclaration) {
@@ -410,7 +415,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
             }
         }
 
-        // Reset local tracking for this constructor and prepare local indices for body variables
+        // Reset local tracking for this constructor and prepare local indices for body
+        // variables
         localCounter = 0;
         localIndices.clear();
 
@@ -418,7 +424,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $obj i32)\n");
         result.append("    (local $temp i32)\n");
 
-        // Reserve numeric local slots for body variables and register them in localIndices
+        // Reserve numeric local slots for body variables and register them in
+        // localIndices
         for (VariableDeclaration varDecl : bodyVariables) {
             result.append("    (local $" + localCounter + " i32)\n");
             localIndices.put(varDecl.name, localCounter);
@@ -429,25 +436,25 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         // Allocate object
         int objectSize = calculateObjectSize(currentClass);
-        result.append("    ;; Allocate object of size " + objectSize + "\n");
+        result.append("    ;;; Allocate object of size " + objectSize + "\n");
         result.append("    i32.const " + objectSize + "\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
 
         // Initialize object header
-        result.append("    ;; Initialize VTable pointer\n");
+        result.append("    ;;; Initialize VTable pointer\n");
         result.append("    local.get $obj\n");
         result.append("    i32.const " + vtableOffsets.get(currentClass.name) + "\n");
         result.append("    i32.store\n");
 
-        result.append("    ;; Initialize type ID\n");
+        result.append("    ;;; Initialize type ID\n");
         result.append("    local.get $obj\n");
         result.append("    i32.const " + typeIds.get(currentClass.name) + "\n");
         result.append("    i32.store offset=4\n");
 
         // Initialize fields
         for (FieldDeclaration field : currentClass.fieldDeclarations) {
-            result.append("    ;; Initialize field " + field.name + "\n");
+            result.append("    ;;; Initialize field " + field.name + "\n");
             int fieldOffset = fieldOffsets.get(currentClass.name).get(field.name);
             if (field.init != null) {
                 // Push address first, then produce the field value, then store.
@@ -474,7 +481,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
             }
         }
         if (currentClass.superClass != null && !hasExplicitSuperCall) {
-            result.append("    ;; Call parent constructor implicitly\n");
+            result.append("    ;;; Call parent constructor implicitly\n");
             result.append("    local.get $obj\n");
             for (Param param : ctor.params) {
                 result.append("    local.get $" + param.name + "\n");
@@ -484,10 +491,12 @@ public class CodeGenerator implements ASTVisitor<Void> {
         }
 
         // Map parameter names to numeric locals if needed (optional)
-        // Note: constructor params are available by name via (param $name i32) in the signature;
+        // Note: constructor params are available by name via (param $name i32) in the
+        // signature;
         // localIndices are already set for body variables above.
 
-        // Generate constructor body statements (bodyVariables already reserved so their local.set will work)
+        // Generate constructor body statements (bodyVariables already reserved so their
+        // local.set will work)
         for (Statement stmt : ctor.body) {
             stmt.accept(this);
         }
@@ -556,7 +565,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         generateRealMethod("Minus", "f64.sub");
         generateRealMethod("Mult", "f64.mul");
         generateRealMethod("Div", "f64.div");
-//        generateRealMethod("Rem", "f64.rem");
+        // generateRealMethod("Rem", "f64.rem");
 
         // Generate Real comparison methods
         generateRealComparisonMethod("Less", "f64.lt");
@@ -676,14 +685,14 @@ public class CodeGenerator implements ASTVisitor<Void> {
         // Create integer object
         result.append("  (func $create_integer (param $value i32) (result i32)\n");
         result.append("    (local $obj i32)\n");
-        result.append("    i32.const 12  ;; size: header(8) + value(4)\n");
+        result.append("    i32.const 12  ;;; size: header(8) + value(4)\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + vtableOffsets.get("Integer") + "  ;; Integer vtable\n");
+        result.append("    i32.const " + vtableOffsets.get("Integer") + "  ;;; Integer vtable\n");
         result.append("    i32.store\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + typeIds.get("Integer") + "  ;; Integer type ID\n");
+        result.append("    i32.const " + typeIds.get("Integer") + "  ;;; Integer type ID\n");
         result.append("    i32.store offset=4\n");
         result.append("    local.get $obj\n");
         result.append("    local.get $value\n");
@@ -694,14 +703,14 @@ public class CodeGenerator implements ASTVisitor<Void> {
         // Create real object
         result.append("  (func $create_real (param $value f64) (result i32)\n");
         result.append("    (local $obj i32)\n");
-        result.append("    i32.const 16  ;; size: header(8) + value(8)\n");
+        result.append("    i32.const 16  ;;; size: header(8) + value(8)\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + vtableOffsets.get("Real") + "  ;; Real vtable\n");
+        result.append("    i32.const " + vtableOffsets.get("Real") + "  ;;; Real vtable\n");
         result.append("    i32.store\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + typeIds.get("Real") + "  ;; Real type ID\n");
+        result.append("    i32.const " + typeIds.get("Real") + "  ;;; Real type ID\n");
         result.append("    i32.store offset=4\n");
         result.append("    local.get $obj\n");
         result.append("    local.get $value\n");
@@ -712,14 +721,14 @@ public class CodeGenerator implements ASTVisitor<Void> {
         // Create boolean object
         result.append("  (func $create_boolean (param $value i32) (result i32)\n");
         result.append("    (local $obj i32)\n");
-        result.append("    i32.const 12  ;; size: header(8) + value(4)\n");
+        result.append("    i32.const 12  ;;; size: header(8) + value(4)\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + vtableOffsets.get("Boolean") + "  ;; Boolean vtable\n");
+        result.append("    i32.const " + vtableOffsets.get("Boolean") + "  ;;; Boolean vtable\n");
         result.append("    i32.store\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + typeIds.get("Boolean") + "  ;; Boolean type ID\n");
+        result.append("    i32.const " + typeIds.get("Boolean") + "  ;;; Boolean type ID\n");
         result.append("    i32.store offset=4\n");
         result.append("    local.get $obj\n");
         result.append("    local.get $value\n");
@@ -732,20 +741,20 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $obj i32)\n");
         result.append("    (local $array_data i32)\n");
         result.append("    (local $i i32)\n");
-        result.append("    ;; Calculate total size: header(8) + length(4) + data_ptr(4) + capacity(4)\n");
+        result.append("    ;;; Calculate total size: header(8) + length(4) + data_ptr(4) + capacity(4)\n");
         result.append("    i32.const 20\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
         result.append("    \n");
-        result.append("    ;; Initialize header\n");
+        result.append("    ;;; Initialize header\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + vtableOffsets.get("Array") + "  ;; Array vtable\n");
+        result.append("    i32.const " + vtableOffsets.get("Array") + "  ;;; Array vtable\n");
         result.append("    i32.store\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + typeIds.get("Array") + "  ;; Array type ID\n");
+        result.append("    i32.const " + typeIds.get("Array") + "  ;;; Array type ID\n");
         result.append("    i32.store offset=4\n");
         result.append("    \n");
-        result.append("    ;; Store array length and capacity\n");
+        result.append("    ;;; Store array length and capacity\n");
         result.append("    local.get $obj\n");
         result.append("    local.get $size\n");
         result.append("    i32.store offset=8\n");
@@ -753,19 +762,19 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    local.get $size\n");
         result.append("    i32.store offset=16\n");
         result.append("    \n");
-        result.append("    ;; Allocate and initialize array data\n");
+        result.append("    ;;; Allocate and initialize array data\n");
         result.append("    local.get $size\n");
         result.append("    i32.const 4\n");
         result.append("    i32.mul\n");
         result.append("    call $allocate\n");
         result.append("    local.set $array_data\n");
         result.append("    \n");
-        result.append("    ;; Store data pointer\n");
+        result.append("    ;;; Store data pointer\n");
         result.append("    local.get $obj\n");
         result.append("    local.get $array_data\n");
         result.append("    i32.store offset=12\n");
         result.append("    \n");
-        result.append("    ;; Initialize array elements to null (0)\n");
+        result.append("    ;;; Initialize array elements to null (0)\n");
         result.append("    i32.const 0\n");
         result.append("    local.set $i\n");
         result.append("    loop $init_loop\n");
@@ -795,31 +804,31 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  (func $create_list (result i32)\n");
         result.append("    (local $obj i32)\n");
         result.append("    (local $data_ptr i32)\n");
-        result.append("    i32.const 24  ;; size: header(8) + length(4) + capacity(4) + data_ptr(4) + size(4)\n");
+        result.append("    i32.const 24  ;;; size: header(8) + length(4) + capacity(4) + data_ptr(4) + size(4)\n");
         result.append("    call $allocate\n");
         result.append("    local.set $obj\n");
         result.append("    \n");
-        result.append("    ;; Initialize header\n");
+        result.append("    ;;; Initialize header\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + vtableOffsets.get("List") + "  ;; List vtable\n");
+        result.append("    i32.const " + vtableOffsets.get("List") + "  ;;; List vtable\n");
         result.append("    i32.store\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const " + typeIds.get("List") + "  ;; List type ID\n");
+        result.append("    i32.const " + typeIds.get("List") + "  ;;; List type ID\n");
         result.append("    i32.store offset=4\n");
         result.append("    \n");
-        result.append("    ;; Initialize list fields\n");
+        result.append("    ;;; Initialize list fields\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const 0   ;; initial length\n");
+        result.append("    i32.const 0   ;;; initial length\n");
         result.append("    i32.store offset=8\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const 10  ;; initial capacity\n");
+        result.append("    i32.const 10  ;;; initial capacity\n");
         result.append("    i32.store offset=12\n");
         result.append("    local.get $obj\n");
-        result.append("    i32.const 0   ;; initial size\n");
+        result.append("    i32.const 0   ;;; initial size\n");
         result.append("    i32.store offset=20\n");
         result.append("    \n");
-        result.append("    ;; Allocate initial data array\n");
-        result.append("    i32.const 40  ;; 10 elements * 4 bytes\n");
+        result.append("    ;;; Allocate initial data array\n");
+        result.append("    i32.const 40  ;;; 10 elements * 4 bytes\n");
         result.append("    call $allocate\n");
         result.append("    local.set $data_ptr\n");
         result.append("    local.get $obj\n");
@@ -833,7 +842,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  (func $Array.get (param $this i32) (param $index i32) (result i32)\n");
         result.append("    (local $data_ptr i32)\n");
         result.append("    (local $length i32)\n");
-        result.append("    ;; Bounds check\n");
+        result.append("    ;;; Bounds check\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=8\n");
         result.append("    local.set $length\n");
@@ -845,11 +854,11 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.ge_s\n");
         result.append("    i32.or\n");
         result.append("    if\n");
-        result.append("      i32.const 0  ;; return null on out of bounds\n");
+        result.append("      i32.const 0  ;;; return null on out of bounds\n");
         result.append("      return\n");
         result.append("    end\n");
         result.append("    \n");
-        result.append("    ;; Load element\n");
+        result.append("    ;;; Load element\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=12\n");
         result.append("    local.set $data_ptr\n");
@@ -865,7 +874,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("  (func $Array.set (param $this i32) (param $index i32) (param $value i32)\n");
         result.append("    (local $data_ptr i32)\n");
         result.append("    (local $length i32)\n");
-        result.append("    ;; Bounds check\n");
+        result.append("    ;;; Bounds check\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=8\n");
         result.append("    local.set $length\n");
@@ -877,10 +886,10 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.ge_s\n");
         result.append("    i32.or\n");
         result.append("    if\n");
-        result.append("      return  ;; ignore out of bounds\n");
+        result.append("      return  ;;; ignore out of bounds\n");
         result.append("    end\n");
         result.append("    \n");
-        result.append("    ;; Store element\n");
+        result.append("    ;;; Store element\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=12\n");
         result.append("    local.set $data_ptr\n");
@@ -910,16 +919,16 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $length i32)\n");
         result.append("    (local $i i32)\n");
         result.append("    \n");
-        result.append("    ;; Create new list\n");
+        result.append("    ;;; Create new list\n");
         result.append("    call $create_list\n");
         result.append("    local.set $list\n");
         result.append("    \n");
-        result.append("    ;; Get array length\n");
+        result.append("    ;;; Get array length\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=8\n");
         result.append("    local.set $length\n");
         result.append("    \n");
-        result.append("    ;; Copy elements from array to list\n");
+        result.append("    ;;; Copy elements from array to list\n");
         result.append("    i32.const 0\n");
         result.append("    local.set $i\n");
         result.append("    loop $copy_loop\n");
@@ -952,7 +961,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $new_data_ptr i32)\n");
         result.append("    (local $i i32)\n");
         result.append("    \n");
-        result.append("    ;; Load current state\n");
+        result.append("    ;;; Load current state\n");
         result.append("    local.get $this\n");
         result.append("    i32.load offset=8\n");
         result.append("    local.set $length\n");
@@ -963,25 +972,25 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.load offset=16\n");
         result.append("    local.set $data_ptr\n");
         result.append("    \n");
-        result.append("    ;; Check if we need to resize\n");
+        result.append("    ;;; Check if we need to resize\n");
         result.append("    local.get $length\n");
         result.append("    local.get $capacity\n");
         result.append("    i32.ge_s\n");
         result.append("    if\n");
-        result.append("      ;; Double the capacity\n");
+        result.append("      ;;; Double the capacity\n");
         result.append("      local.get $capacity\n");
         result.append("      i32.const 2\n");
         result.append("      i32.mul\n");
         result.append("      local.set $capacity\n");
         result.append("      \n");
-        result.append("      ;; Allocate new data array\n");
+        result.append("      ;;; Allocate new data array\n");
         result.append("      local.get $capacity\n");
         result.append("      i32.const 4\n");
         result.append("      i32.mul\n");
         result.append("      call $allocate\n"); // Correctly nested
         result.append("      local.set $new_data_ptr\n");
         result.append("      \n");
-        result.append("      ;; Copy old data\n");
+        result.append("      ;;; Copy old data\n");
         result.append("      i32.const 0\n");
         result.append("      local.set $i\n");
         result.append("      loop $copy_loop\n");
@@ -1009,7 +1018,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("        end\n");
         result.append("      end\n");
         result.append("      \n");
-        result.append("      ;; Update list state\n");
+        result.append("      ;;; Update list state\n");
         result.append("      local.get $this\n");
         result.append("      local.get $capacity\n");
         result.append("      i32.store offset=12\n");
@@ -1020,7 +1029,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("      local.set $data_ptr\n");
         result.append("    end\n");
         result.append("    \n");
-        result.append("    ;; Append the value\n");
+        result.append("    ;;; Append the value\n");
         result.append("    local.get $data_ptr\n");
         result.append("    local.get $length\n");
         result.append("    i32.const 4\n");
@@ -1029,7 +1038,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    local.get $value\n");
         result.append("    i32.store\n");
         result.append("    \n");
-        result.append("    ;; Update length and size\n");
+        result.append("    ;;; Update length and size\n");
         result.append("    local.get $this\n");
         result.append("    local.get $length\n");
         result.append("    i32.const 1\n");
@@ -1041,7 +1050,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.add\n");
         result.append("    i32.store offset=20\n");
         result.append("    \n");
-        result.append("    ;; Return the list for chaining\n");
+        result.append("    ;;; Return the list for chaining\n");
         result.append("    local.get $this\n");
         result.append("  )\n\n");
 
@@ -1060,7 +1069,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("      i32.load offset=16\n");
         result.append("      i32.load\n");
         result.append("    else\n");
-        result.append("      i32.const 0  ;; return null for empty list\n");
+        result.append("      i32.const 0  ;;; return null for empty list\n");
         result.append("    end\n");
         result.append("  )\n\n");
 
@@ -1078,15 +1087,15 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    i32.const 1\n");
         result.append("    i32.le_s\n");
         result.append("    if\n");
-        result.append("      call $create_list  ;; return empty list\n");
+        result.append("      call $create_list  ;;; return empty list\n");
         result.append("      return\n");
         result.append("    end\n");
         result.append("    \n");
-        result.append("    ;; Create new list\n");
+        result.append("    ;;; Create new list\n");
         result.append("    call $create_list\n");
         result.append("    local.set $new_list\n");
         result.append("    \n");
-        result.append("    ;; Copy all but first element\n");
+        result.append("    ;;; Copy all but first element\n");
         result.append("    i32.const 1\n");
         result.append("    local.set $i\n");
         result.append("    loop $copy_loop\n");
@@ -1120,12 +1129,12 @@ public class CodeGenerator implements ASTVisitor<Void> {
         result.append("    (local $vtable i32)\n");
         result.append("    (local $method_ptr i32)\n");
         result.append("    \n");
-        result.append("    ;; Load vtable pointer from object header\n");
+        result.append("    ;;; Load vtable pointer from object header\n");
         result.append("    local.get $obj\n");
         result.append("    i32.load\n");
         result.append("    local.set $vtable\n");
         result.append("    \n");
-        result.append("    ;; Calculate method pointer address: vtable + 4 (skip size) + method_index * 4\n");
+        result.append("    ;;; Calculate method pointer address: vtable + 4 (skip size) + method_index * 4\n");
         result.append("    local.get $vtable\n");
         result.append("    i32.const 4\n");
         result.append("    i32.add\n");
@@ -1141,38 +1150,38 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         // Error handling functions
         result.append("  (func $unknown_method (result i32)\n");
-        result.append("    i32.const 0  ;; return null\n");
+        result.append("    i32.const 0  ;;; return null\n");
         result.append("  )\n\n");
 
         result.append("  (func $method_not_found (result i32)\n");
-        result.append("    i32.const 0  ;; return null\n");
+        result.append("    i32.const 0  ;;; return null\n");
         result.append("  )\n\n");
 
         // Utility functions
         result.append("  (func $print_integer (param $value i32)\n");
-        result.append("    ;; This would interface with WASM host environment for printing\n");
-        result.append("    ;; For now, it's a no-op\n");
+        result.append("    ;;; This would interface with WASM host environment for printing\n");
+        result.append("    ;;; For now, it's a no-op\n");
         result.append("    local.get $value\n");
         result.append("    drop\n");
         result.append("  )\n\n");
 
         result.append("  (func $print_real (param $value i32)\n");
-        result.append("    ;; This would interface with WASM host environment for printing\n");
-        result.append("    ;; For now, it's a no-op\n");
+        result.append("    ;;; This would interface with WASM host environment for printing\n");
+        result.append("    ;;; For now, it's a no-op\n");
         result.append("    local.get $value\n");
         result.append("    drop\n");
         result.append("  )\n\n");
 
         result.append("  (func $print_boolean (param $value i32)\n");
-        result.append("    ;; This would interface with WASM host environment for printing\n");
-        result.append("    ;; For now, it's a no-op\n");
+        result.append("    ;;; This would interface with WASM host environment for printing\n");
+        result.append("    ;;; For now, it's a no-op\n");
         result.append("    local.get $value\n");
         result.append("    drop\n");
         result.append("  )\n\n");
 
         result.append("  (func $print_string (param $str i32) (param $len i32)\n");
-        result.append("    ;; This would interface with WASM host environment for printing\n");
-        result.append("    ;; For now, it's a no-op\n");
+        result.append("    ;;; This would interface with WASM host environment for printing\n");
+        result.append("    ;;; For now, it's a no-op\n");
         result.append("    local.get $str\n");
         result.append("    drop\n");
         result.append("    local.get $len\n");
@@ -1181,8 +1190,8 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
         // Memory management utilities
         result.append("  (func $gc_collect\n");
-        result.append("    ;; Simple garbage collection - reset heap pointer for now\n");
-        result.append("    ;; In a real implementation, this would be more sophisticated\n");
+        result.append("    ;;; Simple garbage collection - reset heap pointer for now\n");
+        result.append("    ;;; In a real implementation, this would be more sophisticated\n");
         result.append("    i32.const 0x1000\n");
         result.append("    global.set $heap_ptr\n");
         result.append("  )\n\n");
@@ -1210,12 +1219,12 @@ public class CodeGenerator implements ASTVisitor<Void> {
         // For now, create an instance of the first class and call its constructor
         if (!program.classes.isEmpty()) {
             ClassDeclaration firstClass = program.classes.get(0);
-            result.append("    ;; Create instance of " + firstClass.name + "\n");
+            result.append("    ;;; Create instance of " + firstClass.name + "\n");
             if (!firstClass.constructorDeclarations.isEmpty()) {
                 ConstructorDeclaration ctor = firstClass.constructorDeclarations.get(0);
                 // Push default arguments
                 for (int i = 0; i < ctor.params.size(); i++) {
-                    result.append("    i32.const 0  ;; default argument " + i + "\n");
+                    result.append("    i32.const 0  ;;; default argument " + i + "\n");
                 }
                 result.append("    call $" + firstClass.name + ".constructor\n");
                 result.append("    drop\n");
@@ -1257,8 +1266,10 @@ public class CodeGenerator implements ASTVisitor<Void> {
             // Create a list of Param objects from the method call arguments for mangling
             List<Param> argParams = new ArrayList<>();
             for (Expression arg : node.args) {
-                // FIX: Create a new Type object for the second argument of the Param constructor.
-                // The parameter name itself doesn't matter for mangling, so we pass an empty string.
+                // FIX: Create a new Type object for the second argument of the Param
+                // constructor.
+                // The parameter name itself doesn't matter for mangling, so we pass an empty
+                // string.
                 argParams.add(new Param("", new Type(arg.type.type)));
             }
             String mangledMethodName = getMangledMethodName(typeName, methodName, argParams);
@@ -1280,7 +1291,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
             result.append("    drop\n");
 
             // Push a null result
-            result.append("    ;; Method not found: " + methodName + "\n");
+            result.append("    ;;; Method not found: " + methodName + "\n");
             result.append("    call $method_not_found\n");
         }
 
@@ -1365,12 +1376,22 @@ public class CodeGenerator implements ASTVisitor<Void> {
     @Override
     public Void visit(ConstructorCall node) {
         // Handle standard library types, which have creators, not constructors.
-        // The actual creation is handled by the literal visitors (e.g., visit(IntegerLiteral)).
+        // The actual creation is handled by the literal visitors (e.g.,
+        // visit(IntegerLiteral)).
         // Here, we just need to ensure the argument expression is visited.
         switch (node.className) {
             case "Integer":
+                if (node.args.isEmpty()) {
+                    node.args.add(new IntegerLiteral(0));
+                }
             case "Real":
+                if (node.args.isEmpty()) {
+                    node.args.add(new RealLiteral(0));
+                }
             case "Boolean":
+                if (node.args.isEmpty()) {
+                    node.args.add(new BooleanLiteral(false));
+                }
                 // The argument (e.g., the '1' in 'new Integer(1)') is an expression.
                 // Visiting it will trigger the correct literal visitor, which generates
                 // the const value and the call to the creator function. We don't need
@@ -1403,7 +1424,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
             }
         }
         // If field not found, try as method (for chained calls)
-        result.append("    ;; Member access - assuming method\n");
+        result.append("    ;;; Member access - assuming method\n");
         return null;
     }
 
@@ -1548,7 +1569,7 @@ public class CodeGenerator implements ASTVisitor<Void> {
         if (node.value != null) {
             node.value.accept(this);
         } else if (currentMethod != null && !currentMethod.returnType.name.equals("null")) {
-            result.append("    i32.const 0  ;; default return\n");
+            result.append("    i32.const 0  ;;; default return\n");
         }
         result.append("    return\n");
         return null;
@@ -1556,13 +1577,18 @@ public class CodeGenerator implements ASTVisitor<Void> {
 
     @Override
     public Void visit(VariableDeclaration node) {
-        // variable locals are declared at the top of the enclosing function/constructor.
-        // Here we only initialize them and store the initial value into the predeclared local index.
+        // variable locals are declared at the top of the enclosing
+        // function/constructor.
+        // Here we only initialize them and store the initial value into the predeclared
+        // local index.
         Integer localIndex = localIndices.get(node.name);
         if (localIndex == null) {
-            // Fallback: if we haven't predeclared the local (shouldn't happen if functions/ctors collect
-            // their body variables up-front), allocate a slot now but DO NOT emit a local declaration here
-            // (WASM requires local declarations before instructions). This fallback keeps generation
+            // Fallback: if we haven't predeclared the local (shouldn't happen if
+            // functions/ctors collect
+            // their body variables up-front), allocate a slot now but DO NOT emit a local
+            // declaration here
+            // (WASM requires local declarations before instructions). This fallback keeps
+            // generation
             // running but it's best to ensure functions predeclare their locals.
             localIndex = localCounter;
             localIndices.put(node.name, localIndex);

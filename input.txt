@@ -1,23 +1,15 @@
-class Animal is
-    method sound() : Integer => 1
-end
+class Point is
+    var x : Integer
+    var y : Integer
 
-class Dog extends Animal is
-    method sound() : Integer => 2
-end
-
-class Polymorphism is
-    method polymorphism(a : Animal) is
-        a.sound();
+    this(a: Integer, b: Integer) is
+        x := a;
+        y := b;
     end
 end
 
 class Tester is
     this() is
-        var x : Animal();
-        var y : Dog();
-        var z : Polymorphism();
-        z.polymorphism(x);
-        z.polymorphism(y);
+        var p : Point(Integer(5), Integer(2));
     end
 end
