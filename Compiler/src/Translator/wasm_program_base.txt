@@ -1,0 +1,1117 @@
+(module
+    ;; == memory configuration ==
+    (memory (export "memory") 1)
+    (global $heap_ptr (mut i32) (i32.const 0x1000))
+
+    ;; == Virtual method tables for static types ==
+    ;;; Integer
+    (table $integer_methods 28 funcref)
+    (global $INTEGER_VTABLE i32 (i32.const 0))
+    ;;; Real
+    (table $real_methods 27 funcref)
+    (global $REAL_VTABLE i32 (i32.const 112))
+    ;;; Boolean
+    (table $boolean_methods 7 funcref)
+    (global $BOOLEAN_VTABLE i32 (i32.const 228))
+
+    ;; == Types of functions ==
+    ;;; Integer functions
+    (type $static_int (func (result i32)))
+    (type $unary_int (func (param i32) (result i32)))
+    (type $binary_int (func (param i32 i32) (result i32)))
+    ;;; Real functions
+    (type $static_real (func (result i32)))
+    (type $unary_real (func (param i32) (result i32)))
+    (type $binary_real (func (param i32 i32) (result i32)))
+    ;;; Boolean functions
+    (type $unary_bool (func (param i32) (result i32)))
+    (type $binary_bool (func (param i32 i32) (result i32)))   
+
+    ;; == Memory allocation for virtual tables for static types ==
+
+    ;;; Virtual method table for Integer
+    (data (i32.const 0) "\1c\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $integer_methods
+    (data (i32.const 4) "\00\00\00\00")  ;; constructor_Integer
+    (data (i32.const 8) "\01\00\00\00")  ;; constructor_Real
+    (data (i32.const 12) "\02\00\00\00") ;; Min (static)
+    (data (i32.const 16) "\03\00\00\00") ;; Max (static)
+    (data (i32.const 20) "\04\00\00\00") ;; toReal
+    (data (i32.const 24) "\05\00\00\00") ;; toBoolean
+    (data (i32.const 28) "\06\00\00\00") ;; UnaryMinus
+    (data (i32.const 32) "\07\00\00\00") ;; Plus_Integer
+    (data (i32.const 36) "\08\00\00\00") ;; Plus_Real
+    (data (i32.const 40) "\09\00\00\00") ;; Minus_Integer
+    (data (i32.const 44) "\0a\00\00\00") ;; Minus_Real
+    (data (i32.const 48) "\0b\00\00\00") ;; Mult_Integer
+    (data (i32.const 52) "\0c\00\00\00") ;; Mult_Real
+    (data (i32.const 56) "\0d\00\00\00") ;; Div_Integer
+    (data (i32.const 60) "\0e\00\00\00") ;; Div_Real
+    (data (i32.const 64) "\0f\00\00\00") ;; Rem_Integer
+    (data (i32.const 68) "\10\00\00\00") ;; Less_Integer
+    (data (i32.const 72) "\11\00\00\00") ;; Less_Real
+    (data (i32.const 76) "\12\00\00\00") ;; LessEqual_Integer
+    (data (i32.const 80) "\13\00\00\00") ;; LessEqual_Real
+    (data (i32.const 84) "\14\00\00\00") ;; Greater_Integer
+    (data (i32.const 88) "\15\00\00\00") ;; Greater_Real
+    (data (i32.const 92) "\16\00\00\00") ;; GreaterEqual_Integer
+    (data (i32.const 96) "\17\00\00\00") ;; GreaterEqual_Real
+    (data (i32.const 100) "\18\00\00\00") ;; Equal_Integer
+    (data (i32.const 104) "\19\00\00\00") ;; Equal_Real
+
+    ;;;  Virtual method table for Real
+    (data (i32.const 112) "\1b\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $real_methods
+    (data (i32.const 116) "\00\00\00\00")  ;; constructor_Real
+    (data (i32.const 120) "\01\00\00\00")  ;; constructor_Integer
+    (data (i32.const 124) "\02\00\00\00")  ;; Min (static)
+    (data (i32.const 128) "\03\00\00\00")  ;; Max (static)
+    (data (i32.const 132) "\04\00\00\00")  ;; Epsilon (static)
+    (data (i32.const 136) "\05\00\00\00")  ;; toInteger
+    (data (i32.const 140) "\06\00\00\00")  ;; UnaryMinus
+    (data (i32.const 144) "\07\00\00\00")  ;; Plus_Real
+    (data (i32.const 148) "\08\00\00\00")  ;; Plus_Integer
+    (data (i32.const 152) "\09\00\00\00")  ;; Minus_Real
+    (data (i32.const 156) "\0a\00\00\00")  ;; Minus_Integer
+    (data (i32.const 160) "\0b\00\00\00")  ;; Mult_Real
+    (data (i32.const 164) "\0c\00\00\00")  ;; Mult_Integer
+    (data (i32.const 168) "\0d\00\00\00")  ;; Div_Integer
+    (data (i32.const 172) "\0e\00\00\00")  ;; Div_Real
+    (data (i32.const 176) "\0f\00\00\00")  ;; Rem_Integer
+    (data (i32.const 180) "\10\00\00\00")  ;; Less_Real
+    (data (i32.const 184) "\11\00\00\00")  ;; Less_Integer
+    (data (i32.const 188) "\12\00\00\00")  ;; LessEqual_Real
+    (data (i32.const 192) "\13\00\00\00")  ;; LessEqual_Integer
+    (data (i32.const 196) "\14\00\00\00")  ;; Greater_Real
+    (data (i32.const 200) "\15\00\00\00")  ;; Greater_Integer
+    (data (i32.const 204) "\16\00\00\00")  ;; GreaterEqual_Real
+    (data (i32.const 208) "\17\00\00\00")  ;; GreaterEqual_Integer
+    (data (i32.const 212) "\18\00\00\00")  ;; Equal_Real
+    (data (i32.const 216) "\19\00\00\00")  ;; Equal_Integer
+
+    ;;;  Virtual method table for Boolean
+    (data (i32.const 228) "\07\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $boolean_methods
+    (data (i32.const 232) "\00\00\00\00")  ;; constructor_Boolean
+    (data (i32.const 236) "\01\00\00\00")  ;; toInteger
+    (data (i32.const 240) "\02\00\00\00")  ;; Or
+    (data (i32.const 244) "\03\00\00\00")  ;; And
+    (data (i32.const 248) "\04\00\00\00")  ;; Xor
+    (data (i32.const 252) "\05\00\00\00")  ;; Not
+
+
+    ;; == Initialization of methods tables for static types ==
+    ;;; Integer table
+    (elem (table $integer_methods) (i32.const 0)
+        $Integer.constructor_Integer
+        $Integer.constructor_Real
+        $Integer.Min
+        $Integer.Max
+        $Integer.toReal
+        $Integer.toBoolean
+        $Integer.UnaryMinus
+        $Integer.Plus_Integer
+        $Integer.Plus_Real
+        $Integer.Minus_Integer
+        $Integer.Minus_Real
+        $Integer.Mult_Integer
+        $Integer.Mult_Real
+        $Integer.Div_Integer
+        $Integer.Div_Real
+        $Integer.Rem_Integer
+        $Integer.Less_Integer
+        $Integer.Less_Real
+        $Integer.LessEqual_Integer
+        $Integer.LessEqual_Real
+        $Integer.Greater_Integer
+        $Integer.Greater_Real
+        $Integer.GreaterEqual_Integer
+        $Integer.GreaterEqual_Real
+        $Integer.Equal_Integer
+        $Integer.Equal_Real
+    )
+
+    ;;; Real table
+    (elem (table $real_methods) (i32.const 0)
+        $Real.constructor_Real
+        $Real.constructor_Integer
+        $Real.Min
+        $Real.Max
+        $Real.Epsilon
+        $Real.toInteger
+        $Real.UnaryMinus
+        $Real.Plus_Real
+        $Real.Plus_Integer
+        $Real.Minus_Real
+        $Real.Minus_Integer
+        $Real.Mult_Real
+        $Real.Mult_Integer
+        $Real.Div_Integer
+        $Real.Div_Real
+        $Real.Rem_Integer
+        $Real.Less_Real
+        $Real.Less_Integer
+        $Real.LessEqual_Real
+        $Real.LessEqual_Integer
+        $Real.Greater_Real
+        $Real.Greater_Integer
+        $Real.GreaterEqual_Real
+        $Real.GreaterEqual_Integer
+        $Real.Equal_Real
+        $Real.Equal_Integer
+    )
+
+    ;;; Boolean table  
+    (elem (table $boolean_methods) (i32.const 0)
+        $Boolean.constructor_Boolean
+        $Boolean.toInteger
+        $Boolean.Or
+        $Boolean.And
+        $Boolean.Xor
+        $Boolean.Not
+    )
+
+    ;; == Methods realization for static types ==
+
+    ;;; Integer methods
+    ;;;; Helper functions
+    
+    ;;;;; Gets value from integer object
+    (func $get_integer_value (param $obj i32) (result i32)
+        (i32.load offset=8 (local.get $obj))
+    )
+
+    ;;;;; Creates integer object
+    (func $create_integer (param $value i32) (result i32)
+        (local $obj i32)
+        
+        ;;;;;; Memory allocation (12 bytes)
+        (local.set $obj (call $allocate (i32.const 12)))
+        
+        ;;;;;; [0-4] Method table pointer (0 for integer)
+        (i32.store (local.get $obj) (i32.const 0))
+        
+        ;;;;;; [4-8] Type ID (0 for integer)
+        (i32.store offset=4 (local.get $obj) (i32.const 0))
+        
+        ;;;;;; [8-12] Integer value from parameters
+        (i32.store offset=8 (local.get $obj) (local.get $value))
+        
+        ;;;;;; Return pointer to object in heap
+        (local.get $obj)
+    )
+
+    ;;; Dynamic Constructors
+    (func $Integer.constructor_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.store)
+    (local.get $this)
+    )
+
+    (func $Integer.constructor_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (i32.trunc_f64_s)
+    (i32.store)
+    (local.get $this)
+    )
+
+    ;;;; Static fields
+    (func $Integer.Min (type $static_int) (result i32)
+    (i32.const -2147483648)
+    (call $create_integer)
+    )
+
+    (func $Integer.Max (type $static_int) (result i32)
+    (i32.const 2147483647)
+    (call $create_integer)
+    )
+
+    ;;;; Translation
+    (func $Integer.toReal (type $unary_int)
+    (param $this i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (call $create_real)
+    )
+
+    (func $Integer.toBoolean (type $unary_int)
+    (param $this i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.const 0)
+    (i32.ne)
+    (call $create_boolean)
+    )
+
+    ;;;; Unary operators
+    (func $Integer.UnaryMinus (type $unary_int)
+    (param $this i32) (result i32)
+    (i32.const 0)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.sub)
+    (call $create_integer)
+    )
+
+    ;;;; Binary arithmetic operators
+    (func $Integer.Plus_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.add)
+    (call $create_integer)
+    )
+
+    (func $Integer.Minus_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.sub)
+    (call $create_integer)
+    )
+
+    (func $Integer.Mult_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.mul)
+    (call $create_integer)
+    )
+
+    (func $Integer.Div_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.div_s)
+    (call $create_integer)
+    )
+
+    (func $Integer.Rem_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.rem_s)
+    (call $create_integer)
+    )
+
+    (func $Integer.Plus_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.add)
+    (call $create_real)
+    )
+
+    (func $Integer.Minus_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.sub)
+    (call $create_real)
+    )
+
+    (func $Integer.Mult_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.mul)
+    (call $create_real)
+    )
+
+    (func $Integer.Div_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.div)
+    (call $create_real)
+    )
+
+    ;;;; Binary compare operators
+    (func $Integer.Less_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.lt_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.LessEqual_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.le_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Greater_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.gt_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.GreaterEqual_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.ge_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Equal_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.eq)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Less_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.lt)
+    (call $create_boolean)
+    )
+
+    (func $Integer.LessEqual_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.le)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Greater_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.gt)
+    (call $create_boolean)
+    )
+
+    (func $Integer.GreaterEqual_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.ge)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Equal_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.eq)
+    (call $create_boolean)
+    )
+
+    ;;; Real methods
+    ;;;; Helper functions
+    (func $create_real (param $value f64) (result i32)
+        (local $obj i32)
+        (local.set $obj (call $allocate (i32.const 16)))
+        
+        ;;;;; VTABLE pointer for Real
+        (i32.store (local.get $obj) (i32.const 112))
+        
+        ;;;;; Type ID (1 for Real)
+        (i32.store offset=4 (local.get $obj) (i32.const 1))
+        
+        ;;;;; Value (f64)
+        (f64.store offset=8 (local.get $obj) (local.get $value))
+        
+        (local.get $obj)
+    )
+
+    (func $get_real_value (param $obj i32) (result f64)
+        (f64.load offset=8 (local.get $obj))
+    )
+
+    ;;;; Constructors
+    (func $Real.constructor_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.store)
+        (local.get $this)
+    )
+    
+    (func $Real.constructor_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.store)
+        (local.get $this)
+    )
+    
+    ;;;; Static fields
+    (func $Real.Min (type $static_real) (result i32)
+        (f64.const -1.7976931348623157e308)  ;;;;; MIN_DOUBLE
+        (call $create_real)
+    )
+    
+    (func $Real.Max (type $static_real) (result i32)
+        (f64.const 1.7976931348623157e308)   ;;;;; MAX_DOUBLE
+        (call $create_real)
+    )
+    
+    (func $Real.Epsilon (type $static_real) (result i32)
+        (f64.const 2.220446049250313e-16)    ;;;;; DBL_EPSILON
+        (call $create_real)
+    )
+    
+    ;;;; Translation
+    (func $Real.toInteger (type $unary_real)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (i32.trunc_f64_s)
+        (call $create_integer)
+    )
+    
+    ;;;;; Unary operations
+    (func $Real.UnaryMinus (type $unary_real)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.neg)
+        (call $create_real)
+    )
+    
+    ;;;;; Binary arithmetic operations
+    (func $Real.Plus_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.add)
+        (call $create_real)
+    )
+    
+    (func $Real.Plus_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.add)
+        (call $create_real)
+    )
+    
+    (func $Real.Minus_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.sub)
+        (call $create_real)
+    )
+    
+    (func $Real.Minus_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.sub)
+        (call $create_real)
+    )
+    
+    (func $Real.Mult_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.mul)
+        (call $create_real)
+    )
+    
+    (func $Real.Mult_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.mul)
+        (call $create_real)
+    )
+    
+    (func $Real.Div_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.div)
+        (call $create_real)
+    )
+    
+    (func $Real.Div_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.div)
+        (call $create_real)
+    )
+    
+    (func $Real.Rem_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.rem)
+        (call $create_real)
+    )
+    
+    ;;;; Comparing operations
+    (func $Real.Less_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.lt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Less_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.lt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.LessEqual_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.le)
+        (call $create_boolean)
+    )
+    
+    (func $Real.LessEqual_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.le)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Greater_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.gt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Greater_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.gt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.GreaterEqual_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.ge)
+        (call $create_boolean)
+    )
+    
+    (func $Real.GreaterEqual_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.ge)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Equal_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.eq)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Equal_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.eq)
+        (call $create_boolean)
+    )
+
+    ;;; Boolean methods
+    ;;;; helper functions
+    (func $create_boolean (param $value i32) (result i32)
+        (local $obj i32)
+        (local.set $obj (call $allocate (i32.const 12)))
+        
+        ;; VTABLE pointer для Boolean
+        (i32.store (local.get $obj) (i32.const 228))
+        
+        ;; Type ID (2 для Boolean)
+        (i32.store offset=4 (local.get $obj) (i32.const 2))
+        
+        ;; Значение (0 = false, 1 = true)
+        (i32.store offset=8 (local.get $obj) (local.get $value))
+        
+        (local.get $obj)
+    )
+
+    (func $create_true (result i32)
+        (i32.const 1)
+        (call $create_boolean)
+    )
+    
+    (func $create_false (result i32)
+        (i32.const 0)
+        (call $create_boolean)
+    )
+
+    (func $get_boolean_value (param $obj i32) (result i32)
+        (i32.load offset=8 (local.get $obj))
+    )
+
+    ;;;; Constructors
+    (func $Boolean.constructor_Boolean (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.store)
+        (local.get $this)
+    )
+    
+    ;;;; Translation
+    (func $Boolean.toInteger (type $unary_bool)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (call $create_integer)
+    )
+    
+    ;;;; Logical operations
+    (func $Boolean.Or (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (i32.or)
+        (call $create_boolean)
+    )
+    
+    (func $Boolean.And (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (i32.and)
+        (call $create_boolean)
+    )
+    
+    (func $Boolean.Xor (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (i32.xor)
+        (call $create_boolean)
+    )
+    
+    (func $Boolean.Not (type $unary_bool)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.eq)
+        (call $create_boolean)
+    )
+
+    ;; == Other Helper methods ==
+
+    ;; Allocator for objects (size -> pointer)
+    (func $allocate (param $size i32) (result i32)
+        (local $ptr i32)
+        
+        (local.set $ptr (global.get $heap_ptr))
+        
+        (global.set $heap_ptr
+        (i32.add (global.get $heap_ptr) (local.get $size))
+        )
+        
+        (local.get $ptr)
+    )
+
+    ;; Get method from type and index
+    (func $get_method (param $type_id i32) (param $method_index i32) (result i32)
+        (i32.load 
+        (i32.add 
+            (i32.add (local.get $type_id) (i32.const 4))
+            (i32.mul (local.get $method_index) (i32.const 4))
+        )
+        )
+    )
+
+
+
+
+
+    ;; == Test function and exports ==
+    
+    (func (export "_start")
+        ;; Create test objects
+        (local $int1 i32)
+        (local $int2 i32) 
+        (local $real1 i32)
+        (local $bool1 i32)
+        (local $bool2 i32)
+        
+        ;; Create some objects to test allocation
+        (local.set $int1 (call $create_integer (i32.const 42)))
+        (local.set $int2 (call $create_integer (i32.const 100)))
+        (local.set $real1 (call $create_real (f64.const 3.14)))
+        (local.set $bool1 (call $create_boolean (i32.const 1)))  ;; true
+        (local.set $bool2 (call $create_boolean (i32.const 0)))  ;; false
+        
+        ;; Test some operations (results are ignored for now, just testing that they work)
+        (drop (call $Integer.Plus_Integer (local.get $int1) (local.get $int2)))
+        (drop (call $Integer.toReal (local.get $int1)))
+        (drop (call $Real.toInteger (local.get $real1)))
+        (drop (call $Boolean.And (local.get $bool1) (local.get $bool2)))
+        (drop (call $Boolean.Not (local.get $bool1)))
+    )
+    
+    ;; Function to get current heap size for testing
+    (func (export "get_heap_size") (result i32)
+        (global.get $heap_ptr)
+    )
+
+    ;; Export additional functions for testing
+    (export "create_integer" (func $create_integer))
+    (export "create_real" (func $create_real))
+    (export "create_boolean" (func $create_boolean))
+    (export "create_true" (func $create_true))
+    (export "create_false" (func $create_false))
+    (export "get_integer_value" (func $get_integer_value))
+    (export "get_real_value" (func $get_real_value))
+    (export "get_boolean_value" (func $get_boolean_value))
+    (export "Integer.Plus_Integer" (func $Integer.Plus_Integer))
+    (export "Integer.toReal" (func $Integer.toReal))
+    (export "Real.toInteger" (func $Real.toInteger))
+    (export "Boolean.And" (func $Boolean.And))
+    (export "Boolean.Not" (func $Boolean.Not))
+)
