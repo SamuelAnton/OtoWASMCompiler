@@ -757,17 +757,35 @@
     )
     
     (func $Real.Rem_Integer (type $binary_real)
-        (param $this i32) (param $other i32) (result i32)
+    (param $this i32) (param $other i32) (result i32)
+        (local $a f64)
+        (local $b f64)
+        
+        ;; Load the Real value
         (local.get $this)
         (i32.const 8)
         (i32.add)
         (f64.load)
+        (local.set $a)
+        
+        ;; Load the Integer value and convert to f64
         (local.get $other)
         (i32.const 8)
         (i32.add)
         (i32.load)
         (f64.convert_i32_s)
-        (f64.rem)
+        (local.set $b)
+        
+        ;; Calculate remainder: a - b * floor(a / b)
+        (local.get $a)
+        (local.get $b)
+        (f64.div)
+        (f64.floor)
+        (local.get $b)
+        (f64.mul)
+        (local.get $a)
+        (f64.sub)
+        
         (call $create_real)
     )
     

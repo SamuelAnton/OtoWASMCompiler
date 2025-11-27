@@ -1,34 +1,15 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>WASM Test</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        .success {
-            color: green;
-        }
-
-        .error {
-            color: red;
-        }
-
-        .info {
-            color: blue;
-        }
-
-        #output {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
     </style>
 </head>
-
 <body>
     <h1>WebAssembly Test Runner</h1>
     <button onclick="runAdvancedTests()">Run Advanced Tests</button>
@@ -127,20 +108,64 @@
                 output.innerHTML += `<div class="success">Integer value: ${intValue} (expected: 42)</div>`;
                 output.innerHTML += `<div class="success">Boolean value: ${boolValue} (expected: 1)</div>`;
 
-                // Test operations
+                // Test operations - ИСПРАВЛЕНО: используем правильные имена экспортов
                 const int2 = instance.exports.create_integer(58);
-                const sumResult = instance.exports.Integer.Plus_Integer(intObj, int2);
+                
+                // Используем квадратные скобки для доступа к функциям с точками в имени
+                const sumResult = instance.exports['Integer.Plus_Integer'](intObj, int2);
                 const sumValue = instance.exports.get_integer_value(sumResult);
 
                 output.innerHTML += `<div class="success">42 + 58 = ${sumValue} (expected: 100)</div>`;
+
+                // Дополнительные тесты
+                output.innerHTML += '<div class="info"><br>Running additional method tests...</div>';
+                
+                // Test Integer.toReal
+                const realFromInt = instance.exports['Integer.toReal'](intObj);
+                const realValue = instance.exports.get_real_value(realFromInt);
+                output.innerHTML += `<div class="success">Integer to Real conversion: ${realValue} (expected: 42.0)</div>`;
+                
+                // Test Real.toInteger  
+                const intFromReal = instance.exports['Real.toInteger'](realObj);
+                const intFromRealValue = instance.exports.get_integer_value(intFromReal);
+                output.innerHTML += `<div class="success">Real to Integer conversion: ${intFromRealValue} (expected: 3)</div>`;
+                
+                // Test Boolean operations
+                const andResult = instance.exports['Boolean.And'](boolObj, instance.exports.create_boolean(1));
+                const andValue = instance.exports.get_boolean_value(andResult);
+                output.innerHTML += `<div class="success">true AND true = ${andValue} (expected: 1)</div>`;
+                
+                const notResult = instance.exports['Boolean.Not'](boolObj);
+                const notValue = instance.exports.get_boolean_value(notResult);
+                output.innerHTML += `<div class="success">NOT true = ${notValue} (expected: 0)</div>`;
 
                 output.innerHTML += '<div class="success"><br><strong>Advanced tests completed successfully!</strong></div>';
 
             } catch (error) {
                 output.innerHTML += `<div class="error">Advanced test error: ${error.message}</div>`;
+                console.error('Advanced test error:', error);
             }
         }
+
+        // Альтернативная функция для отладки - показывает все экспорты
+        async function debugExports() {
+            try {
+                const response = await fetch('output.wasm');
+                const bytes = await response.arrayBuffer();
+                const results = await WebAssembly.instantiate(bytes);
+                const instance = results.instance;
+                
+                console.log('All exports:');
+                for (const key in instance.exports) {
+                    console.log(`- ${key}: ${typeof instance.exports[key]}`);
+                }
+            } catch (error) {
+                console.error('Debug error:', error);
+            }
+        }
+
+        // Запускаем отладку при загрузке страницы
+        window.addEventListener('load', debugExports);
     </script>
 </body>
-
 </html>
