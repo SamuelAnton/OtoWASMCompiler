@@ -1,15 +1,40 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>WASM Test</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .success { color: green; }
-        .error { color: red; }
-        .info { color: blue; }
-        #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .info {
+            color: blue;
+        }
+
+        .test-section {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 3px solid #ccc;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
+
 <body>
     <h1>WebAssembly Test Runner</h1>
     <button onclick="runAdvancedTests()">Run Advanced Tests</button>
@@ -34,7 +59,7 @@
                 // Test 1: Check if functions exist
                 output.innerHTML += '<div class="info">Testing exported functions...</div>';
 
-                const requiredExports = ['_start', 'get_heap_size', 'create_integer', 'create_boolean'];
+                const requiredExports = ['_start', 'get_heap_size', 'create_integer', 'create_boolean', 'create_list'];
                 for (const exp of requiredExports) {
                     if (typeof instance.exports[exp] !== 'function') {
                         throw new Error(`${exp} function not found`);
@@ -94,6 +119,7 @@
 
                 // Test object creation
                 const intObj = instance.exports.create_integer(42);
+                const intObj2 = instance.exports.create_integer(100);
                 const realObj = instance.exports.create_real(3.14);
                 const boolObj = instance.exports.create_boolean(1);
 
@@ -108,36 +134,82 @@
                 output.innerHTML += `<div class="success">Integer value: ${intValue} (expected: 42)</div>`;
                 output.innerHTML += `<div class="success">Boolean value: ${boolValue} (expected: 1)</div>`;
 
-                // Test operations - ИСПРАВЛЕНО: используем правильные имена экспортов
-                const int2 = instance.exports.create_integer(58);
-                
-                // Используем квадратные скобки для доступа к функциям с точками в имени
-                const sumResult = instance.exports['Integer.Plus_Integer'](intObj, int2);
+                // Test operations
+                const sumResult = instance.exports['Integer.Plus_Integer'](intObj, intObj2);
                 const sumValue = instance.exports.get_integer_value(sumResult);
+                output.innerHTML += `<div class="success">42 + 100 = ${sumValue} (expected: 142)</div>`;
 
-                output.innerHTML += `<div class="success">42 + 58 = ${sumValue} (expected: 100)</div>`;
+                // Test Array functionality
+                output.innerHTML += '<div class="test-section"><strong>Testing Array functionality...</strong></div>';
 
-                // Дополнительные тесты
-                output.innerHTML += '<div class="info"><br>Running additional method tests...</div>';
-                
-                // Test Integer.toReal
-                const realFromInt = instance.exports['Integer.toReal'](intObj);
-                const realValue = instance.exports.get_real_value(realFromInt);
-                output.innerHTML += `<div class="success">Integer to Real conversion: ${realValue} (expected: 42.0)</div>`;
-                
-                // Test Real.toInteger  
-                const intFromReal = instance.exports['Real.toInteger'](realObj);
-                const intFromRealValue = instance.exports.get_integer_value(intFromReal);
-                output.innerHTML += `<div class="success">Real to Integer conversion: ${intFromRealValue} (expected: 3)</div>`;
-                
-                // Test Boolean operations
-                const andResult = instance.exports['Boolean.And'](boolObj, instance.exports.create_boolean(1));
-                const andValue = instance.exports.get_boolean_value(andResult);
-                output.innerHTML += `<div class="success">true AND true = ${andValue} (expected: 1)</div>`;
-                
-                const notResult = instance.exports['Boolean.Not'](boolObj);
-                const notValue = instance.exports.get_boolean_value(notResult);
-                output.innerHTML += `<div class="success">NOT true = ${notValue} (expected: 0)</div>`;
+                const arrayObj = instance.exports.create_array(3);
+                output.innerHTML += `<div class="success">Array created at address: ${arrayObj}</div>`;
+
+                // Set array elements
+                instance.exports['Array.set'](arrayObj, 0, intObj);
+                instance.exports['Array.set'](arrayObj, 1, intObj2);
+                instance.exports['Array.set'](arrayObj, 2, intObj);
+
+                // Get array length
+                const arrayLength = instance.exports['Array.Length'](arrayObj);
+                const arrayLengthValue = instance.exports.get_integer_value(arrayLength);
+                output.innerHTML += `<div class="success">Array length: ${arrayLengthValue} (expected: 3)</div>`;
+
+                // Get array element
+                const arrayElement = instance.exports['Array.get'](arrayObj, 1);
+                const arrayElementValue = instance.exports.get_integer_value(arrayElement);
+                output.innerHTML += `<div class="success">Array element at index 1: ${arrayElementValue} (expected: 100)</div>`;
+
+                // Test List functionality
+                output.innerHTML += '<div class="test-section"><strong>Testing List functionality...</strong></div>';
+
+                // Test empty list
+                const emptyList = instance.exports.create_list();
+                instance.exports['List.constructor0'](emptyList);
+                const emptyListSize = instance.exports['List.size'](emptyList);
+                const emptyListSizeValue = instance.exports.get_integer_value(emptyListSize);
+                const emptyListIsEmpty = instance.exports['List.isEmpty'](emptyList);
+                const emptyListIsEmptyValue = instance.exports.get_boolean_value(emptyListIsEmpty);
+
+                output.innerHTML += `<div class="success">Empty list created at address: ${emptyList}</div>`;
+                output.innerHTML += `<div class="success">Empty list size: ${emptyListSizeValue} (expected: 0)</div>`;
+                output.innerHTML += `<div class="success">Empty list isEmpty: ${emptyListIsEmptyValue} (expected: 1)</div>`;
+
+                // Test list with single element
+                const singleList = instance.exports.create_list();
+                instance.exports['List.constructor1'](singleList, intObj);
+                const singleListSize = instance.exports['List.size'](singleList);
+                const singleListSizeValue = instance.exports.get_integer_value(singleListSize);
+                const singleListHead = instance.exports['List.head'](singleList);
+                const singleListHeadValue = instance.exports.get_integer_value(singleListHead);
+
+                output.innerHTML += `<div class="success">Single-element list created at address: ${singleList}</div>`;
+                output.innerHTML += `<div class="success">Single-element list size: ${singleListSizeValue} (expected: 1)</div>`;
+                output.innerHTML += `<div class="success">Single-element list head: ${singleListHeadValue} (expected: 42)</div>`;
+
+                // Test list append
+                instance.exports['List.append'](singleList, intObj2);
+                const appendedListSize = instance.exports['List.size'](singleList);
+                const appendedListSizeValue = instance.exports.get_integer_value(appendedListSize);
+                output.innerHTML += `<div class="success">After append, list size: ${appendedListSizeValue} (expected: 2)</div>`;
+
+                // Test list tail
+                const tailList = instance.exports['List.tail'](singleList);
+                const tailListSize = instance.exports['List.size'](tailList);
+                const tailListSizeValue = instance.exports.get_integer_value(tailListSize);
+                output.innerHTML += `<div class="success">Tail list size: ${tailListSizeValue} (expected: 1)</div>`;
+
+                // Test list with multiple elements
+                const multiList = instance.exports.create_list();
+                instance.exports['List.constructor2'](multiList, intObj2, 3);
+                const multiListSize = instance.exports['List.size'](multiList);
+                const multiListSizeValue = instance.exports.get_integer_value(multiListSize);
+                const multiListHead = instance.exports['List.head'](multiList);
+                const multiListHeadValue = instance.exports.get_integer_value(multiListHead);
+
+                output.innerHTML += `<div class="success">Multi-element list created at address: ${multiList}</div>`;
+                output.innerHTML += `<div class="success">Multi-element list size: ${multiListSizeValue} (expected: 3)</div>`;
+                output.innerHTML += `<div class="success">Multi-element list head: ${multiListHeadValue} (expected: 100)</div>`;
 
                 output.innerHTML += '<div class="success"><br><strong>Advanced tests completed successfully!</strong></div>';
 
@@ -154,7 +226,7 @@
                 const bytes = await response.arrayBuffer();
                 const results = await WebAssembly.instantiate(bytes);
                 const instance = results.instance;
-                
+
                 console.log('All exports:');
                 for (const key in instance.exports) {
                     console.log(`- ${key}: ${typeof instance.exports[key]}`);
@@ -168,4 +240,5 @@
         window.addEventListener('load', debugExports);
     </script>
 </body>
+
 </html>

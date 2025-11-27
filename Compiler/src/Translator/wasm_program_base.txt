@@ -13,6 +13,13 @@
     ;;; Boolean
     (table $boolean_methods 7 funcref)
     (global $BOOLEAN_VTABLE i32 (i32.const 228))
+    ;;; Array
+    (table $array_methods 4 funcref)
+    (global $ARRAY_VTABLE i32 (i32.const 256))
+    ;;; List
+    (table $list_methods 8 funcref)
+    (global $LIST_VTABLE i32 (i32.const 304))
+
 
     ;; == Types of functions ==
     ;;; Integer functions
@@ -25,7 +32,21 @@
     (type $binary_real (func (param i32 i32) (result i32)))
     ;;; Boolean functions
     (type $unary_bool (func (param i32) (result i32)))
-    (type $binary_bool (func (param i32 i32) (result i32)))   
+    (type $binary_bool (func (param i32 i32) (result i32)))
+    ;;; Array functions
+    (type $array_constructor (func (param i32 i32) (result i32)))  ;; this, length
+    (type $array_unary (func (param i32) (result i32)))            ;; this -> result
+    (type $array_get (func (param i32 i32) (result i32)))          ;; this, index -> element
+    (type $array_set (func (param i32 i32 i32) (result i32)))      ;; this, index, value -> this
+    ;;; List functions
+    (type $list_constructor0 (func (param i32) (result i32)))
+    (type $list_constructor1 (func (param i32 i32) (result i32)))
+    (type $list_constructor2 (func (param i32 i32 i32) (result i32)))
+    (type $list_append (func (param i32 i32) (result i32)))
+    (type $list_head (func (param i32) (result i32)))
+    (type $list_tail (func (param i32) (result i32)))
+    (type $list_size (func (param i32) (result i32)))
+    (type $list_is_empty (func (param i32) (result i32)))
 
     ;; == Memory allocation for virtual tables for static types ==
 
@@ -99,6 +120,26 @@
     (data (i32.const 248) "\04\00\00\00")  ;; Xor
     (data (i32.const 252) "\05\00\00\00")  ;; Not
 
+    ;;; Virtual method table for Array
+    (data (i32.const 256) "\04\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $array_methods
+    (data (i32.const 260) "\00\00\00\00")  ;; constructor
+    (data (i32.const 264) "\01\00\00\00")  ;; Length
+    (data (i32.const 268) "\02\00\00\00")  ;; get
+    (data (i32.const 272) "\03\00\00\00")  ;; set
+
+    ;;; Virtual method table for List
+    (data (i32.const 304) "\08\00\00\00")  ;; Table size (8 методов)
+    ;;;; Method's index in table $list_methods
+    (data (i32.const 308) "\00\00\00\00")  ;; constructor0 (empty)
+    (data (i32.const 312) "\01\00\00\00")  ;; constructor1 (single element)
+    (data (i32.const 316) "\02\00\00\00")  ;; constructor2 (element + count)
+    (data (i32.const 320) "\03\00\00\00")  ;; append
+    (data (i32.const 324) "\04\00\00\00")  ;; head
+    (data (i32.const 328) "\05\00\00\00")  ;; tail
+    (data (i32.const 332) "\06\00\00\00")  ;; size
+    (data (i32.const 336) "\07\00\00\00")  ;; isEmpty
+
 
     ;; == Initialization of methods tables for static types ==
     ;;; Integer table
@@ -169,6 +210,26 @@
         $Boolean.And
         $Boolean.Xor
         $Boolean.Not
+    )
+
+    ;;; Array table
+    (elem (table $array_methods) (i32.const 0)
+        $Array.constructor
+        $Array.Length
+        $Array.get
+        $Array.set
+    )
+
+    ;;; List table
+    (elem (table $list_methods) (i32.const 0)
+        $List.constructor0
+        $List.constructor1
+        $List.constructor2
+        $List.append
+        $List.head
+        $List.tail
+        $List.size
+        $List.isEmpty
     )
 
     ;; == Methods realization for static types ==
@@ -1059,6 +1120,401 @@
         (call $create_boolean)
     )
 
+
+    ;; == Array methods implementation ==
+
+    ;;; Helper functions for Array
+    
+    ;;;;; Creates array object
+    (func $create_array (param $length i32) (result i32)
+        (local $arr i32)
+        (local $total_size i32)
+        
+        ;; Рассчитываем общий размер: заголовок (12 байт) + данные (length * 4 байта)
+        (local.set $total_size 
+            (i32.add (i32.const 12) (i32.mul (local.get $length) (i32.const 4)))
+        )
+        
+        ;; Выделяем память
+        (local.set $arr (call $allocate (local.get $total_size)))
+        
+        ;; Инициализируем поля массива
+        (i32.store (local.get $arr) (global.get $ARRAY_VTABLE))  ;; vtable pointer
+        (i32.store offset=4 (local.get $arr) (i32.const 3))      ;; type_id = 3 (Array)
+        (i32.store offset=8 (local.get $arr) (local.get $length)) ;; длина массива
+        
+        ;; Инициализируем элементы нулями (null pointers)
+        (local $i i32)
+        (local $data_start i32)
+        (local.set $data_start (i32.add (local.get $arr) (i32.const 12)))
+        (local.set $i (i32.const 0))
+        (loop $init_loop
+            (i32.store 
+                (i32.add (local.get $data_start) (i32.mul (local.get $i) (i32.const 4)))
+                (i32.const 0)  ;; null pointer
+            )
+            (local.set $i (i32.add (local.get $i) (i32.const 1)))
+            (br_if $init_loop (i32.lt_u (local.get $i) (local.get $length)))
+        )
+        
+        (local.get $arr)
+    )
+
+    ;;;;; Gets array length
+    (func $get_array_length (param $arr i32) (result i32)
+        (i32.load offset=8 (local.get $arr))
+    )
+
+    ;;;;; Gets element from array
+    (func $get_array_element (param $arr i32) (param $index i32) (result i32)
+        ;; Проверка границ (опционально, но рекомендуется)
+        (if (i32.ge_u (local.get $index) (i32.load offset=8 (local.get $arr)))
+            (then
+                ;; Выход за границы - возвращаем null
+                (return (i32.const 0))
+            )
+        )
+        
+        (i32.load 
+            (i32.add 
+                (i32.add (local.get $arr) (i32.const 12))
+                (i32.mul (local.get $index) (i32.const 4))
+            )
+        )
+    )
+
+    ;;;;; Sets element in array
+    (func $set_array_element (param $arr i32) (param $index i32) (param $value i32) (result i32)
+        ;; Проверка границ
+        (if (i32.ge_u (local.get $index) (i32.load offset=8 (local.get $arr)))
+            (then
+                ;; Выход за границы - просто возвращаем массив без изменений
+                (return (local.get $arr))
+            )
+        )
+        
+        (i32.store 
+            (i32.add 
+                (i32.add (local.get $arr) (i32.const 12))
+                (i32.mul (local.get $index) (i32.const 4))
+            )
+            (local.get $value)
+        )
+        
+        (local.get $arr)
+    )
+
+    ;;; Array class methods
+
+    (func $Array.constructor (type $array_constructor)
+        (param $this i32) (param $length i32) (result i32)
+        ;; Уже инициализирован в create_array, просто возвращаем this
+        (local.get $this)
+    )
+
+    (func $Array.Length (type $array_unary)
+        (param $this i32) (result i32)
+        (i32.load offset=8 (local.get $this))
+    )
+
+    (func $Array.get (type $array_get)
+        (param $this i32) (param $index i32) (result i32)
+        ;; Используем вспомогательную функцию с проверкой границ
+        (call $get_array_element (local.get $this) (local.get $index))
+    )
+
+    (func $Array.set (type $array_set)
+        (param $this i32) (param $index i32) (param $value i32) (result i32)
+        ;; Используем вспомогательную функцию с проверкой границ
+        (call $set_array_element (local.get $this) (local.get $index) (local.get $value))
+    )
+
+    ;; == List helper functions ==
+
+    ;;; Creates a new List object
+    (func $create_list (result i32)
+        (local $list i32)
+        
+        ;; Allocate memory for List object (20 bytes)
+        (local.set $list (call $allocate (i32.const 20)))
+        
+        ;; Initialize fields
+        (i32.store (local.get $list) (global.get $LIST_VTABLE))  ;; vtable pointer
+        (i32.store offset=4 (local.get $list) (i32.const 4))     ;; type_id = 4 (List)
+        (i32.store offset=8 (local.get $list) (i32.const 0))     ;; size = 0
+        (i32.store offset=12 (local.get $list) (i32.const 0))    ;; capacity = 0
+        (i32.store offset=16 (local.get $list) (i32.const 0))    ;; data = null
+        
+        (local.get $list)
+    )
+
+    ;;; Gets the internal array from a List
+    (func $list_get_data (param $list i32) (result i32)
+        (i32.load offset=16 (local.get $list))
+    )
+
+    ;;; Sets the internal array for a List
+    (func $list_set_data (param $list i32) (param $data i32)
+        (i32.store offset=16 (local.get $list) (local.get $data))
+    )
+
+    ;;; Gets the size of a List
+    (func $list_get_size (param $list i32) (result i32)
+        (i32.load offset=8 (local.get $list))
+    )
+
+    ;;; Sets the size of a List
+    (func $list_set_size (param $list i32) (param $size i32)
+        (i32.store offset=8 (local.get $list) (local.get $size))
+    )
+
+    ;;; Gets the capacity of a List
+    (func $list_get_capacity (param $list i32) (result i32)
+        (i32.load offset=12 (local.get $list))
+    )
+
+    ;;; Sets the capacity of a List
+    (func $list_set_capacity (param $list i32) (param $capacity i32)
+        (i32.store offset=12 (local.get $list) (local.get $capacity))
+    )
+
+    ;;; Ensures the List has enough capacity, resizing if necessary
+    (func $list_ensure_capacity (param $list i32) (param $min_capacity i32)
+        (local $current_capacity i32)
+        (local $new_capacity i32)
+        (local $current_data i32)
+        (local $new_data i32)
+        (local $i i32)
+        
+        ;; Get current capacity
+        (local.set $current_capacity (call $list_get_capacity (local.get $list)))
+        
+        ;; If current capacity is sufficient, return
+        (if (i32.ge_u (local.get $current_capacity) (local.get $min_capacity))
+            (then (return))
+        )
+        
+        ;; Calculate new capacity (double until sufficient)
+        (local.set $new_capacity (local.get $current_capacity))
+        (if (i32.eq (local.get $new_capacity) (i32.const 0))
+            (then (local.set $new_capacity (i32.const 4)))
+        )
+        (loop $calculate_capacity
+            (if (i32.lt_u (local.get $new_capacity) (local.get $min_capacity))
+                (then
+                    (local.set $new_capacity (i32.mul (local.get $new_capacity) (i32.const 2)))
+                    (br $calculate_capacity)
+                )
+            )
+        )
+        
+        ;; Create new array with new capacity
+        (local.set $new_data (call $create_array (local.get $new_capacity)))
+        
+        ;; Copy existing elements if any
+        (local.set $current_data (call $list_get_data (local.get $list)))
+        (if (i32.ne (local.get $current_data) (i32.const 0))
+            (then
+                (local.set $i (i32.const 0))
+                (loop $copy_loop
+                    (if (i32.lt_u (local.get $i) (call $list_get_size (local.get $list)))
+                        (then
+                            ;; Copy element from old array to new array
+                            (call $set_array_element
+                                (local.get $new_data)
+                                (local.get $i)
+                                (call $get_array_element (local.get $current_data) (local.get $i))
+                            )
+                            (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                            (br $copy_loop)
+                        )
+                    )
+                )
+            )
+        )
+        
+        ;; Update List fields
+        (call $list_set_data (local.get $list) (local.get $new_data))
+        (call $list_set_capacity (local.get $list) (local.get $new_capacity))
+    )
+
+    ;; == List methods implementation ==
+
+    ;;; Empty constructor
+    (func $List.constructor0 (type $list_constructor0)
+        (param $this i32) (result i32)
+        ;; List is already initialized as empty by create_list
+        (local.get $this)
+    )
+
+    ;;; Constructor with single element
+    (func $List.constructor1 (type $list_constructor1)
+        (param $this i32) (param $element i32) (result i32)
+        ;; Ensure capacity for at least 1 element
+        (call $list_ensure_capacity (local.get $this) (i32.const 1))
+        
+        ;; Add the element
+        (call $set_array_element
+            (call $list_get_data (local.get $this))
+            (i32.const 0)
+            (local.get $element)
+        )
+        
+        ;; Update size
+        (call $list_set_size (local.get $this) (i32.const 1))
+        
+        (local.get $this)
+    )
+
+    ;;; Constructor with element and count
+    (func $List.constructor2 (type $list_constructor2)
+        (param $this i32) (param $element i32) (param $count i32) (result i32)
+        (local $i i32)
+        (local $data i32)
+        
+        ;; Ensure capacity
+        (call $list_ensure_capacity (local.get $this) (local.get $count))
+        
+        ;; Get data array
+        (local.set $data (call $list_get_data (local.get $this)))
+        
+        ;; Fill with copies of the element
+        (local.set $i (i32.const 0))
+        (loop $fill_loop
+            (if (i32.lt_u (local.get $i) (local.get $count))
+                (then
+                    (call $set_array_element
+                        (local.get $data)
+                        (local.get $i)
+                        (local.get $element)
+                    )
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br $fill_loop)
+                )
+            )
+        )
+        
+        ;; Update size
+        (call $list_set_size (local.get $this) (local.get $count))
+        
+        (local.get $this)
+    )
+
+    ;;; Append element to list
+    (func $List.append (type $list_append)
+        (param $this i32) (param $element i32) (result i32)
+        (local $size i32)
+        (local $data i32)
+        
+        ;; Get current size and ensure capacity
+        (local.set $size (call $list_get_size (local.get $this)))
+        (call $list_ensure_capacity (local.get $this) (i32.add (local.get $size) (i32.const 1)))
+        
+        ;; Get data array
+        (local.set $data (call $list_get_data (local.get $this)))
+        
+        ;; Add element at the end
+        (call $set_array_element
+            (local.get $data)
+            (local.get $size)
+            (local.get $element)
+        )
+        
+        ;; Update size
+        (call $list_set_size (local.get $this) (i32.add (local.get $size) (i32.const 1)))
+        
+        (local.get $this)
+    )
+
+    ;;; Get first element (head)
+    (func $List.head (type $list_head)
+        (param $this i32) (result i32)
+        (local $size i32)
+        
+        (local.set $size (call $list_get_size (local.get $this)))
+        
+        ;; Check if list is empty
+        (if (i32.eq (local.get $size) (i32.const 0))
+            (then
+                ;; Return null for empty list (you might want to throw an error instead)
+                (return (i32.const 0))
+            )
+        )
+        
+        ;; Return first element
+        (call $get_array_element
+            (call $list_get_data (local.get $this))
+            (i32.const 0)
+        )
+    )
+
+    ;;; Get tail (list without first element)
+    (func $List.tail (type $list_tail)
+        (param $this i32) (result i32)
+        (local $size i32)
+        (local $new_list i32)
+        (local $data i32)
+        (local $new_data i32)
+        (local $i i32)
+        
+        (local.set $size (call $list_get_size (local.get $this)))
+        
+        ;; If list is empty or has only one element, return empty list
+        (if (i32.le_u (local.get $size) (i32.const 1))
+            (then
+                (return (call $create_list))
+            )
+        )
+        
+        ;; Create new list
+        (local.set $new_list (call $create_list))
+        
+        ;; Ensure capacity for new list
+        (call $list_ensure_capacity (local.get $new_list) (i32.sub (local.get $size) (i32.const 1)))
+        
+        ;; Get data arrays
+        (local.set $data (call $list_get_data (local.get $this)))
+        (local.set $new_data (call $list_get_data (local.get $new_list)))
+        
+        ;; Copy all elements except first
+        (local.set $i (i32.const 1))
+        (loop $copy_loop
+            (if (i32.lt_u (local.get $i) (local.get $size))
+                (then
+                    (call $set_array_element
+                        (local.get $new_data)
+                        (i32.sub (local.get $i) (i32.const 1))
+                        (call $get_array_element (local.get $data) (local.get $i))
+                    )
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br $copy_loop)
+                )
+            )
+        )
+        
+        ;; Set size of new list
+        (call $list_set_size (local.get $new_list) (i32.sub (local.get $size) (i32.const 1)))
+        
+        (local.get $new_list)
+    )
+
+    ;;; Get size of list
+    (func $List.size (type $list_size)
+        (param $this i32) (result i32)
+        ;; Return size as Integer object
+        (call $list_get_size (local.get $this))
+        (call $create_integer)
+    )
+
+    ;;; Check if list is empty
+    (func $List.isEmpty (type $list_is_empty)
+        (param $this i32) (result i32)
+        ;; Return Boolean object
+        (call $list_get_size (local.get $this))
+        (i32.eqz)
+        (call $create_boolean)
+    )
+
     ;; == Other Helper methods ==
 
     ;; Allocator for objects (size -> pointer)
@@ -1090,27 +1546,70 @@
 
     ;; == Test function and exports ==
     
-    (func (export "_start")
+     (func (export "_start")
         ;; Create test objects
         (local $int1 i32)
         (local $int2 i32) 
         (local $real1 i32)
         (local $bool1 i32)
         (local $bool2 i32)
+        (local $arr i32)
+        (local $list1 i32)
+        (local $list2 i32)
+        (local $list3 i32)
+        (local $temp i32)
         
-        ;; Create some objects to test allocation
+        ;; Create basic objects
         (local.set $int1 (call $create_integer (i32.const 42)))
         (local.set $int2 (call $create_integer (i32.const 100)))
         (local.set $real1 (call $create_real (f64.const 3.14)))
         (local.set $bool1 (call $create_boolean (i32.const 1)))  ;; true
         (local.set $bool2 (call $create_boolean (i32.const 0)))  ;; false
         
-        ;; Test some operations (results are ignored for now, just testing that they work)
+        ;; Test basic operations
         (drop (call $Integer.Plus_Integer (local.get $int1) (local.get $int2)))
         (drop (call $Integer.toReal (local.get $int1)))
         (drop (call $Real.toInteger (local.get $real1)))
         (drop (call $Boolean.And (local.get $bool1) (local.get $bool2)))
         (drop (call $Boolean.Not (local.get $bool1)))
+        
+        ;; Test Array functionality
+        (local.set $arr (call $create_array (i32.const 3)))
+        ;; Set array elements
+        (drop (call $Array.set (local.get $arr) (i32.const 0) (local.get $int1)))
+        (drop (call $Array.set (local.get $arr) (i32.const 1) (local.get $int2)))
+        (drop (call $Array.set (local.get $arr) (i32.const 2) (local.get $int1)))
+        ;; Test array get
+        (drop (call $Array.get (local.get $arr) (i32.const 1)))
+        
+        ;; Test List functionality
+        ;; Test empty list
+        (local.set $list1 (call $create_list))
+        (drop (call $List.constructor0 (local.get $list1)))
+        
+        ;; Test list with single element
+        (local.set $list2 (call $create_list))
+        (drop (call $List.constructor1 (local.get $list2) (local.get $int1)))
+        
+        ;; Test list with multiple copies
+        (local.set $list3 (call $create_list))
+        (drop (call $List.constructor2 (local.get $list3) (local.get $int2) (i32.const 3)))
+        
+        ;; Test append
+        (drop (call $List.append (local.get $list2) (local.get $int2)))
+        (drop (call $List.append (local.get $list2) (local.get $int1)))
+        
+        ;; Test head and tail
+        (local.set $temp (call $List.head (local.get $list2)))
+        (local.set $temp (call $List.tail (local.get $list2)))
+        
+        ;; Test size and isEmpty
+        (drop (call $List.size (local.get $list1)))
+        (drop (call $List.isEmpty (local.get $list1)))
+        (drop (call $List.size (local.get $list2)))
+        (drop (call $List.isEmpty (local.get $list2)))
+        (drop (call $List.size (local.get $list3)))
+        (drop (call $List.isEmpty (local.get $list3)))
     )
     
     ;; Function to get current heap size for testing
@@ -1132,4 +1631,21 @@
     (export "Real.toInteger" (func $Real.toInteger))
     (export "Boolean.And" (func $Boolean.And))
     (export "Boolean.Not" (func $Boolean.Not))
+
+    ;; Export Array functions for testing
+    (export "create_array" (func $create_array))
+    (export "Array.Length" (func $Array.Length))
+    (export "Array.get" (func $Array.get))
+    (export "Array.set" (func $Array.set))
+
+    ;; Export List functions for testing
+    (export "create_list" (func $create_list))
+    (export "List.constructor0" (func $List.constructor0))
+    (export "List.constructor1" (func $List.constructor1))
+    (export "List.constructor2" (func $List.constructor2))
+    (export "List.append" (func $List.append))
+    (export "List.head" (func $List.head))
+    (export "List.tail" (func $List.tail))
+    (export "List.size" (func $List.size))
+    (export "List.isEmpty" (func $List.isEmpty))
 )
