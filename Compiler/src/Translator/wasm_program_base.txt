@@ -1129,6 +1129,8 @@
     (func $create_array (param $length i32) (result i32)
         (local $arr i32)
         (local $total_size i32)
+        (local $i i32)
+        (local $data_start i32)
         
         ;; Рассчитываем общий размер: заголовок (12 байт) + данные (length * 4 байта)
         (local.set $total_size 
@@ -1144,8 +1146,6 @@
         (i32.store offset=8 (local.get $arr) (local.get $length)) ;; длина массива
         
         ;; Инициализируем элементы нулями (null pointers)
-        (local $i i32)
-        (local $data_start i32)
         (local.set $data_start (i32.add (local.get $arr) (i32.const 12)))
         (local.set $i (i32.const 0))
         (loop $init_loop
@@ -1299,6 +1299,7 @@
         (if (i32.eq (local.get $new_capacity) (i32.const 0))
             (then (local.set $new_capacity (i32.const 4)))
         )
+        
         (loop $calculate_capacity
             (if (i32.lt_u (local.get $new_capacity) (local.get $min_capacity))
                 (then
@@ -1320,11 +1321,11 @@
                     (if (i32.lt_u (local.get $i) (call $list_get_size (local.get $list)))
                         (then
                             ;; Copy element from old array to new array
-                            (call $set_array_element
+                            (drop (call $set_array_element
                                 (local.get $new_data)
                                 (local.get $i)
                                 (call $get_array_element (local.get $current_data) (local.get $i))
-                            )
+                            ))
                             (local.set $i (i32.add (local.get $i) (i32.const 1)))
                             (br $copy_loop)
                         )
@@ -1347,18 +1348,18 @@
         (local.get $this)
     )
 
-    ;;; Constructor with single element
+    ;;; Constructor with single element`
     (func $List.constructor1 (type $list_constructor1)
         (param $this i32) (param $element i32) (result i32)
         ;; Ensure capacity for at least 1 element
         (call $list_ensure_capacity (local.get $this) (i32.const 1))
         
         ;; Add the element
-        (call $set_array_element
+        (drop (call $set_array_element
             (call $list_get_data (local.get $this))
             (i32.const 0)
             (local.get $element)
-        )
+        ))
         
         ;; Update size
         (call $list_set_size (local.get $this) (i32.const 1))
@@ -1414,11 +1415,11 @@
         (local.set $data (call $list_get_data (local.get $this)))
         
         ;; Add element at the end
-        (call $set_array_element
+        (drop (call $set_array_element
             (local.get $data)
             (local.get $size)
             (local.get $element)
-        )
+        ))
         
         ;; Update size
         (call $list_set_size (local.get $this) (i32.add (local.get $size) (i32.const 1)))
@@ -1481,11 +1482,11 @@
         (loop $copy_loop
             (if (i32.lt_u (local.get $i) (local.get $size))
                 (then
-                    (call $set_array_element
+                    (drop (call $set_array_element
                         (local.get $new_data)
                         (i32.sub (local.get $i) (i32.const 1))
                         (call $get_array_element (local.get $data) (local.get $i))
-                    )
+                    ))
                     (local.set $i (i32.add (local.get $i) (i32.const 1)))
                     (br $copy_loop)
                 )
