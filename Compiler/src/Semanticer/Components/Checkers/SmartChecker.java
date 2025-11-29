@@ -224,7 +224,6 @@ public class SmartChecker implements ASTVisitor<Void> {
                                 + where());
             }
         } else if (!((n.member instanceof MemberAccess) || (n.member instanceof ConstructorCall))) {
-            System.out.println(n.member.getClass());
             throw new ValidationException("Not correct member access" + where());
         }
 

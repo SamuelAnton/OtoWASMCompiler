@@ -77,44 +77,44 @@ public class CodeGenerator implements ASTVisitor<Void> {
     }
 
     private void generateDefaultConstructor(ClassDeclaration cls) {
-    String funcName = cls.name + ".constructor";
-    functionAddresses.put(funcName, currentFunctionAddress);
-    currentFunctionAddress += 0x100;
+        String funcName = cls.name + ".constructor";
+        functionAddresses.put(funcName, currentFunctionAddress);
+        currentFunctionAddress += 0x100;
 
-    result.append("  (func $" + funcName + " (result i32)\n");
-    result.append("    (local $obj i32)\n");
-    result.append("    (local $temp i32)\n");
+        result.append("  (func $" + funcName + " (result i32)\n");
+        result.append("    (local $obj i32)\n");
+        result.append("    (local $temp i32)\n");
 
-    int objectSize = calculateObjectSize(cls);
-    result.append("    ;;; Allocate object of size " + objectSize + "\n");
-    result.append("    i32.const " + objectSize + "\n");
-    result.append("    call $allocate\n");
-    result.append("    local.set $obj\n");
+        int objectSize = calculateObjectSize(cls);
+        result.append("    ;;; Allocate object of size " + objectSize + "\n");
+        result.append("    i32.const " + objectSize + "\n");
+        result.append("    call $allocate\n");
+        result.append("    local.set $obj\n");
 
-    result.append("    local.get $obj\n");
-    result.append("    i32.const " + vtableOffsets.get(cls.name) + "\n");
-    result.append("    i32.store\n");
-    result.append("    local.get $obj\n");
-    result.append("    i32.const " + typeIds.get(cls.name) + "\n");
-    result.append("    i32.store offset=4\n");
+        result.append("    local.get $obj\n");
+        result.append("    i32.const " + vtableOffsets.get(cls.name) + "\n");
+        result.append("    i32.store\n");
+        result.append("    local.get $obj\n");
+        result.append("    i32.const " + typeIds.get(cls.name) + "\n");
+        result.append("    i32.store offset=4\n");
 
-    Map<String, Integer> offsets = fieldOffsets.get(cls.name);
-    if (offsets != null) {
-        for (Map.Entry<String, Integer> e : offsets.entrySet()) {
-            int fieldOffset = e.getValue();
-            result.append("    local.get $obj\n");
-            result.append("    i32.const 0\n");
-            result.append("    i32.store offset=" + fieldOffset + "\n");
+        Map<String, Integer> offsets = fieldOffsets.get(cls.name);
+        if (offsets != null) {
+            for (Map.Entry<String, Integer> e : offsets.entrySet()) {
+                int fieldOffset = e.getValue();
+                result.append("    local.get $obj\n");
+                result.append("    i32.const 0\n");
+                result.append("    i32.store offset=" + fieldOffset + "\n");
+            }
         }
+
+        result.append("    local.get $obj\n");
+        result.append("  )\n\n");
+
+        // Update VTable
+        updateVTable(cls.name, funcName);
     }
 
-    result.append("    local.get $obj\n");
-    result.append("  )\n\n");
-
-    // Update VTable
-    updateVTable(cls.name, funcName);
-}
- 
     private void initializeStandardTypes() {
         typeIds.put("Integer", nextTypeId++);
         typeIds.put("Real", nextTypeId++);
@@ -384,107 +384,107 @@ public class CodeGenerator implements ASTVisitor<Void> {
     }
 
     private void generateConstructor(ConstructorDeclaration ctor) {
-    String funcName = currentClass.name + ".constructor";
-    functionAddresses.put(funcName, currentFunctionAddress);
-    currentFunctionAddress += 0x100;
+        String funcName = currentClass.name + ".constructor";
+        functionAddresses.put(funcName, currentFunctionAddress);
+        currentFunctionAddress += 0x100;
 
-    result.append("  (func $" + funcName);
+        result.append("  (func $" + funcName);
 
-    for (Param param : ctor.params) {
-        result.append(" (param $" + param.name + " i32)");
-    }
-    result.append(" (result i32)\n");
-
-    List<VariableDeclaration> bodyVariables = new ArrayList<>();
-    for (Statement stmt : ctor.body) {
-        if (stmt instanceof VariableDeclaration) {
-            bodyVariables.add((VariableDeclaration) stmt);
+        for (Param param : ctor.params) {
+            result.append(" (param $" + param.name + " i32)");
         }
-    }
+        result.append(" (result i32)\n");
 
-    // Reset local tracking
-    localCounter = 0;
-    localIndices.clear();
-
-    // Declare fixed locals
-    result.append("    (local $obj i32)\n");
-    result.append("    (local $temp i32)\n");
-
-    // Register parameter names in localIndices with -1 (so they use param names)
-    for (Param param : ctor.params) {
-        localIndices.put(param.name, -1);
-    }
-
-    // Reserve numeric local slots for body variables
-    for (VariableDeclaration varDecl : bodyVariables) {
-        result.append("    (local $" + localCounter + " i32)\n");
-        localIndices.put(varDecl.name, localCounter);
-        localCounter++;
-    }
-
-    // Allocate object
-    int objectSize = calculateObjectSize(currentClass);
-    result.append("    ;;; Allocate object of size " + objectSize + "\n");
-    result.append("    i32.const " + objectSize + "\n");
-    result.append("    call $allocate\n");
-    result.append("    local.set $obj\n");
-
-    // Initialize object header
-    result.append("    ;;; Initialize VTable pointer\n");
-    result.append("    local.get $obj\n");
-    result.append("    i32.const " + vtableOffsets.get(currentClass.name) + "\n");
-    result.append("    i32.store\n");
-
-    result.append("    ;;; Initialize type ID\n");
-    result.append("    local.get $obj\n");
-    result.append("    i32.const " + typeIds.get(currentClass.name) + "\n");
-    result.append("    i32.store offset=4\n");
-
-    // Initialize fields
-    for (FieldDeclaration field : currentClass.fieldDeclarations) {
-        result.append("    ;;; Initialize field " + field.name + "\n");
-        int fieldOffset = fieldOffsets.get(currentClass.name).get(field.name);
-        if (field.init != null) {
-            result.append("    local.get $obj\n");
-            field.init.accept(this);
-            result.append("    i32.store offset=" + fieldOffset + "\n");
-        } else {
-            result.append("    local.get $obj\n");
-            result.append("    i32.const 0\n");
-            result.append("    i32.store offset=" + fieldOffset + "\n");
-        }
-    }
-
-    // Handle super constructor call
-    boolean hasExplicitSuperCall = false;
-    for (Statement stmt : ctor.body) {
-        if (stmt instanceof ExpressionStatement) {
-            Expression expr = ((ExpressionStatement) stmt).value;
-            if (expr instanceof SuperConstructorCall) {
-                hasExplicitSuperCall = true;
-                break;
+        List<VariableDeclaration> bodyVariables = new ArrayList<>();
+        for (Statement stmt : ctor.body) {
+            if (stmt instanceof VariableDeclaration) {
+                bodyVariables.add((VariableDeclaration) stmt);
             }
         }
-    }
-    if (currentClass.superClass != null && !hasExplicitSuperCall) {
-        result.append("    ;;; Call parent constructor implicitly\n");
-        result.append("    local.get $obj\n");
+
+        // Reset local tracking
+        localCounter = 0;
+        localIndices.clear();
+
+        // Declare fixed locals
+        result.append("    (local $obj i32)\n");
+        result.append("    (local $temp i32)\n");
+
+        // Register parameter names in localIndices with -1 (so they use param names)
         for (Param param : ctor.params) {
-            result.append("    local.get $" + param.name + "\n");
+            localIndices.put(param.name, -1);
         }
-        result.append("    call $" + currentClass.superClass.name + ".constructor\n");
-        result.append("    drop\n");
-    }
 
-    // Generate constructor body statements
-    for (Statement stmt : ctor.body) {
-        stmt.accept(this);
-    }
+        // Reserve numeric local slots for body variables
+        for (VariableDeclaration varDecl : bodyVariables) {
+            result.append("    (local $" + localCounter + " i32)\n");
+            localIndices.put(varDecl.name, localCounter);
+            localCounter++;
+        }
 
-    // Return the object
-    result.append("    local.get $obj\n");
-    result.append("  )\n\n");
-}
+        // Allocate object
+        int objectSize = calculateObjectSize(currentClass);
+        result.append("    ;;; Allocate object of size " + objectSize + "\n");
+        result.append("    i32.const " + objectSize + "\n");
+        result.append("    call $allocate\n");
+        result.append("    local.set $obj\n");
+
+        // Initialize object header
+        result.append("    ;;; Initialize VTable pointer\n");
+        result.append("    local.get $obj\n");
+        result.append("    i32.const " + vtableOffsets.get(currentClass.name) + "\n");
+        result.append("    i32.store\n");
+
+        result.append("    ;;; Initialize type ID\n");
+        result.append("    local.get $obj\n");
+        result.append("    i32.const " + typeIds.get(currentClass.name) + "\n");
+        result.append("    i32.store offset=4\n");
+
+        // Initialize fields
+        for (FieldDeclaration field : currentClass.fieldDeclarations) {
+            result.append("    ;;; Initialize field " + field.name + "\n");
+            int fieldOffset = fieldOffsets.get(currentClass.name).get(field.name);
+            if (field.init != null) {
+                result.append("    local.get $obj\n");
+                field.init.accept(this);
+                result.append("    i32.store offset=" + fieldOffset + "\n");
+            } else {
+                result.append("    local.get $obj\n");
+                result.append("    i32.const 0\n");
+                result.append("    i32.store offset=" + fieldOffset + "\n");
+            }
+        }
+
+        // Handle super constructor call
+        boolean hasExplicitSuperCall = false;
+        for (Statement stmt : ctor.body) {
+            if (stmt instanceof ExpressionStatement) {
+                Expression expr = ((ExpressionStatement) stmt).value;
+                if (expr instanceof SuperConstructorCall) {
+                    hasExplicitSuperCall = true;
+                    break;
+                }
+            }
+        }
+        if (currentClass.superClass != null && !hasExplicitSuperCall) {
+            result.append("    ;;; Call parent constructor implicitly\n");
+            result.append("    local.get $obj\n");
+            for (Param param : ctor.params) {
+                result.append("    local.get $" + param.name + "\n");
+            }
+            result.append("    call $" + currentClass.superClass.name + ".constructor\n");
+            result.append("    drop\n");
+        }
+
+        // Generate constructor body statements
+        for (Statement stmt : ctor.body) {
+            stmt.accept(this);
+        }
+
+        // Return the object
+        result.append("    local.get $obj\n");
+        result.append("  )\n\n");
+    }
 
     private int calculateObjectSize(ClassDeclaration cls) {
         Map<String, Integer> offsets = fieldOffsets.get(cls.name);
@@ -1394,79 +1394,79 @@ public class CodeGenerator implements ASTVisitor<Void> {
     }
 
     @Override
-public Void visit(AssignmentStatement node) {
-    node.value.accept(this);
-    if (node.target instanceof VariableReference) {
-        String varName = ((VariableReference) node.target).name;
-        Integer localIndex = localIndices.get(varName);
+    public Void visit(AssignmentStatement node) {
+        node.value.accept(this);
+        if (node.target instanceof VariableReference) {
+            String varName = ((VariableReference) node.target).name;
+            Integer localIndex = localIndices.get(varName);
+            if (localIndex != null) {
+                if (localIndex == -1) {
+                    result.append("    local.set $" + varName + "\n");
+                } else {
+                    result.append("    local.set $" + localIndex + "\n");
+                }
+            } else {
+                // Handle field assignment - use $obj in constructors, $this in methods
+                if (currentMethod == null && currentClass != null) {
+                    // Constructor
+                    result.append("    local.get $obj\n");
+                } else {
+                    // Method
+                    result.append("    local.get $this\n");
+                }
+                if (currentClass != null) {
+                    Map<String, Integer> offsets = fieldOffsets.get(currentClass.name);
+                    if (offsets != null && offsets.containsKey(varName)) {
+                        int offset = offsets.get(varName);
+                        result.append("    i32.store offset=" + offset + "\n");
+                    }
+                }
+            }
+        } else if (node.target instanceof MemberAccess) {
+            MemberAccess memberAccess = (MemberAccess) node.target;
+            memberAccess.target.accept(this);
+            if (memberAccess.member instanceof VariableReference) {
+                String fieldName = ((VariableReference) memberAccess.member).name;
+                VariableType targetType = memberAccess.target.type;
+                if (targetType != null) {
+                    Map<String, Integer> offsets = fieldOffsets.get(targetType.type);
+                    if (offsets != null && offsets.containsKey(fieldName)) {
+                        int offset = offsets.get(fieldName);
+                        result.append("    i32.store offset=" + offset + "\n");
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Void visit(VariableReference node) {
+        Integer localIndex = localIndices.get(node.name);
         if (localIndex != null) {
             if (localIndex == -1) {
-                result.append("    local.set $" + varName + "\n");
+                result.append("    local.get $" + node.name + "\n");
             } else {
-                result.append("    local.set $" + localIndex + "\n");
+                result.append("    local.get $" + localIndex + "\n");
             }
         } else {
-            // Handle field assignment - use $obj in constructors, $this in methods
             if (currentMethod == null && currentClass != null) {
                 // Constructor
                 result.append("    local.get $obj\n");
             } else {
-                // Method  
+                // Method
                 result.append("    local.get $this\n");
             }
             if (currentClass != null) {
                 Map<String, Integer> offsets = fieldOffsets.get(currentClass.name);
-                if (offsets != null && offsets.containsKey(varName)) {
-                    int offset = offsets.get(varName);
-                    result.append("    i32.store offset=" + offset + "\n");
+                if (offsets != null && offsets.containsKey(node.name)) {
+                    int offset = offsets.get(node.name);
+                    result.append("    i32.load offset=" + offset + "\n");
                 }
             }
         }
-    } else if (node.target instanceof MemberAccess) {
-        MemberAccess memberAccess = (MemberAccess) node.target;
-        memberAccess.target.accept(this);
-        if (memberAccess.member instanceof VariableReference) {
-            String fieldName = ((VariableReference) memberAccess.member).name;
-            VariableType targetType = memberAccess.target.type;
-            if (targetType != null) {
-                Map<String, Integer> offsets = fieldOffsets.get(targetType.type);
-                if (offsets != null && offsets.containsKey(fieldName)) {
-                    int offset = offsets.get(fieldName);
-                    result.append("    i32.store offset=" + offset + "\n");
-                }
-            }
-        }
+        return null;
     }
-    return null;
-    }
-
-    @Override
-public Void visit(VariableReference node) {
-    Integer localIndex = localIndices.get(node.name);
-    if (localIndex != null) {
-        if (localIndex == -1) {
-            result.append("    local.get $" + node.name + "\n");
-        } else {
-            result.append("    local.get $" + localIndex + "\n");
-        }
-    } else {
-        if (currentMethod == null && currentClass != null) {
-            // Constructor
-            result.append("    local.get $obj\n");
-        } else {
-            // Method
-            result.append("    local.get $this\n");
-        }
-        if (currentClass != null) {
-            Map<String, Integer> offsets = fieldOffsets.get(currentClass.name);
-            if (offsets != null && offsets.containsKey(node.name)) {
-                int offset = offsets.get(node.name);
-                result.append("    i32.load offset=" + offset + "\n");
-            }
-        }
-    }
-    return null;
-}
 
     @Override
     public Void visit(WhileStatement node) {

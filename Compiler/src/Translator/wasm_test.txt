@@ -1,0 +1,324 @@
+(module
+  ;; Память и таблицы
+  (memory (export "memory") 1)
+  (table (export "Integer_vtable") 28 funcref)
+  
+  ;; Типы функций
+  (type $unary_int (func (param i32) (result i32)))
+  (type $binary_int (func (param i32 i32) (result i32)))
+  (type $binary_real (func (param i32 i32) (result i32)))
+  (type $binary_bool (func (param i32 i32) (result i32)))
+  
+  ;; Функции создания объектов (предполагаем, что они уже есть)
+  (func $create_integer (param i32) (result i32))
+  (func $create_real (param f64) (result i32))
+  (func $create_boolean (param i32) (result i32))
+  
+  ;; === ИСПРАВЛЕННЫЕ МЕТОДЫ INTEGER ===
+  
+  ;; Арифметические операции с Integer
+  (func $Integer.Plus_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.add
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_integer)
+  )
+  
+  (func $Integer.Plus_Real (param $this i32) (param $other i32) (result i32)
+    (f64.add
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_real)
+  )
+  
+  (func $Integer.Minus_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.sub
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_integer)
+  )
+  
+  (func $Integer.Minus_Real (param $this i32) (param $other i32) (result i32)
+    (f64.sub
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_real)
+  )
+  
+  (func $Integer.Mult_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.mul
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_integer)
+  )
+  
+  (func $Integer.Mult_Real (param $this i32) (param $other i32) (result i32)
+    (f64.mul
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_real)
+  )
+  
+  (func $Integer.Div_Integer (param $this i32) (param $other i32) (result i32)
+    ;; Проверка деления на ноль должна быть добавлена!
+    (i32.div_s
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_integer)
+  )
+  
+  (func $Integer.Div_Real (param $this i32) (param $other i32) (result i32)
+    (f64.div
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_real)
+  )
+  
+  (func $Integer.Rem_Integer (param $this i32) (param $other i32) (result i32)
+    ;; Проверка деления на ноль должна быть добавлена!
+    (i32.rem_s
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_integer)
+  )
+  
+  ;; Операции сравнения с Integer
+  (func $Integer.Less_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.lt_s
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.Less_Real (param $this i32) (param $other i32) (result i32)
+    (f64.lt
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.LessEqual_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.le_s
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.LessEqual_Real (param $this i32) (param $other i32) (result i32)
+    (f64.le
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.Greater_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.gt_s
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.Greater_Real (param $this i32) (param $other i32) (result i32)
+    (f64.gt
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.GreaterEqual_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.ge_s
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.GreaterEqual_Real (param $this i32) (param $other i32) (result i32)
+    (f64.ge
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.Equal_Integer (param $this i32) (param $other i32) (result i32)
+    (i32.eq
+      (i32.load offset=8 (local.get $this))
+      (i32.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  (func $Integer.Equal_Real (param $this i32) (param $other i32) (result i32)
+    (f64.eq
+      (f64.convert_i32_s (i32.load offset=8 (local.get $this)))
+      (f64.load offset=8 (local.get $other))
+    )
+    (call $create_boolean)
+  )
+  
+  ;; Унарные операции и преобразования
+  (func $Integer.UnaryMinus (param $this i32) (result i32)
+    (i32.sub
+      (i32.const 0)
+      (i32.load offset=8 (local.get $this))
+    )
+    (call $create_integer)
+  )
+  
+  (func $Integer.toReal (param $this i32) (result i32)
+    (f64.convert_i32_s
+      (i32.load offset=8 (local.get $this))
+    )
+    (call $create_real)
+  )
+  
+  (func $Integer.toBoolean (param $this i32) (result i32)
+    (i32.ne
+      (i32.load offset=8 (local.get $this))
+      (i32.const 0)
+    )
+    (call $create_boolean)
+  )
+  
+  ;; Конструкторы
+  (func $Integer.constructor_Integer (param $this i32) (param $other i32) (result i32)
+    ;; Копируем значение из другого Integer
+    (i32.store offset=8
+      (local.get $this)
+      (i32.load offset=8 (local.get $other))
+    )
+    (local.get $this)
+  )
+  
+  (func $Integer.constructor_Real (param $this i32) (param $other i32) (result i32)
+    ;; Конвертируем Real в Integer (округление в меньшую сторону)
+    (i32.store offset=8
+      (local.get $this)
+      (i32.trunc_f64_s (f64.load offset=8 (local.get $other)))
+    )
+    (local.get $this)
+  )
+  
+  ;; Статические поля (реализованы как функции)
+  (func $Integer.Min (result i32)
+    (i32.const -2147483648)  ;; MIN_INT
+    (call $create_integer)
+  )
+  
+  (func $Integer.Max (result i32)
+    (i32.const 2147483647)   ;; MAX_INT
+    (call $create_integer)
+  )
+  
+  ;; === ЗАПОЛНЕНИЕ ТАБЛИЦЫ МЕТОДОВ ===
+  
+  (elem (i32.const 0)
+    ;; Конструкторы [0-1]
+    $Integer.constructor_Integer
+    $Integer.constructor_Real
+    
+    ;; Статические поля [2-3]
+    $Integer.Min
+    $Integer.Max
+    
+    ;; Преобразования [4-5]
+    $Integer.toReal
+    $Integer.toBoolean
+    
+    ;; Унарные операторы [6]
+    $Integer.UnaryMinus
+    
+    ;; Бинарные арифметические операции [7-16]
+    $Integer.Plus_Integer
+    $Integer.Plus_Real
+    $Integer.Minus_Integer
+    $Integer.Minus_Real
+    $Integer.Mult_Integer
+    $Integer.Mult_Real
+    $Integer.Div_Integer
+    $Integer.Div_Real
+    $Integer.Rem_Integer
+    
+    ;; Операции сравнения [17-28]
+    $Integer.Less_Integer
+    $Integer.Less_Real
+    $Integer.LessEqual_Integer
+    $Integer.LessEqual_Real
+    $Integer.Greater_Integer
+    $Integer.Greater_Real
+    $Integer.GreaterEqual_Integer
+    $Integer.GreaterEqual_Real
+    $Integer.Equal_Integer
+    $Integer.Equal_Real
+  )
+  
+  ;; === ИНИЦИАЛИЗАЦИЯ ПАМЯТИ ===
+  
+  ;; Записываем размер vtable для Integer (28 методов)
+  (data (i32.const 0) "\1c\00\00\00")  ;; 28 = 0x1c
+  
+  ;; Записываем смещения методов в памяти
+  ;; Каждое i32 значение - это индекс в таблице функций
+  (data (i32.const 4) "\00\00\00\00")  ;; constructor_Integer
+  (data (i32.const 8) "\01\00\00\00")  ;; constructor_Real
+  (data (i32.const 12) "\02\00\00\00") ;; Min
+  (data (i32.const 16) "\03\00\00\00") ;; Max
+  (data (i32.const 20) "\04\00\00\00") ;; toReal
+  (data (i32.const 24) "\05\00\00\00") ;; toBoolean
+  (data (i32.const 28) "\06\00\00\00") ;; UnaryMinus
+  (data (i32.const 32) "\07\00\00\00") ;; Plus_Integer
+  (data (i32.const 36) "\08\00\00\00") ;; Plus_Real
+  (data (i32.const 40) "\09\00\00\00") ;; Minus_Integer
+  (data (i32.const 44) "\0a\00\00\00") ;; Minus_Real
+  (data (i32.const 48) "\0b\00\00\00") ;; Mult_Integer
+  (data (i32.const 52) "\0c\00\00\00") ;; Mult_Real
+  (data (i32.const 56) "\0d\00\00\00") ;; Div_Integer
+  (data (i32.const 60) "\0e\00\00\00") ;; Div_Real
+  (data (i32.const 64) "\0f\00\00\00") ;; Rem_Integer
+  (data (i32.const 68) "\10\00\00\00") ;; Less_Integer
+  (data (i32.const 72) "\11\00\00\00") ;; Less_Real
+  (data (i32.const 76) "\12\00\00\00") ;; LessEqual_Integer
+  (data (i32.const 80) "\13\00\00\00") ;; LessEqual_Real
+  (data (i32.const 84) "\14\00\00\00") ;; Greater_Integer
+  (data (i32.const 88) "\15\00\00\00") ;; Greater_Real
+  (data (i32.const 92) "\16\00\00\00") ;; GreaterEqual_Integer
+  (data (i32.const 96) "\17\00\00\00") ;; GreaterEqual_Real
+  (data (i32.const 100) "\18\00\00\00") ;; Equal_Integer
+  (data (i32.const 104) "\19\00\00\00") ;; Equal_Real
+  
+  ;; === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+  
+  ;; Получить метод по индексу
+  (func (export "get_integer_method") (param $method_index i32) (result i32)
+    (i32.load (i32.add (i32.const 4) (i32.mul (local.get $method_index) (i32.const 4))))
+  )
+  
+  ;; Вызов метода по индексу
+  (func (export "call_integer_method")
+    (param $object i32) (param $method_index i32) (param $arg i32) (result i32)
+    (local $func_index i32)
+    (local.set $func_index (call $get_integer_method (local.get $method_index)))
+    
+    (call_indirect (type $binary_int)
+      (local.get $object)
+      (local.get $arg)
+      (local.get $func_index)
+    )
+  )
+)
