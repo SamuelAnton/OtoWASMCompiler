@@ -19,7 +19,7 @@ public class ClassDeclaration extends ASTNode {
     public final List<ConstructorDeclaration> constructorDeclarations = new ArrayList<>();
 
     public List<FieldDeclaration> fieldsList = new ArrayList<>();
-    public List<MethodDeclaration> methodsList = new ArrayList<>();
+    public List<MemberDeclaration> methodsList = new ArrayList<>();
     public ClassDeclaration superClass;
 
     public VariableType type;
@@ -55,17 +55,26 @@ public class ClassDeclaration extends ASTNode {
 
     public void fillMethodsList() {
         if (superClass != null) {
+            methodsList.addAll(superClass.constructorDeclarations);
             methodsList.addAll(superClass.methodDeclarations);
         }
+        methodsList.addAll(constructorDeclarations);
         methodsList.addAll(methodDeclarations);
     }
 
-    public int getIndexByMethod(MethodDeclaration input) {
+    public int getIndexByMethod(MemberDeclaration input) {
         for (int i = methodsList.size() - 1; i >= 0; i--) {
-            MethodDeclaration cur = methodsList.get(i);
-            if (cur.name.equals(input.name) && cur.returnType.equals(input.returnType)
-                    && cur.params.equals(input.params)) {
-                return i;
+            MemberDeclaration cur = methodsList.get(i);
+            if (cur instanceof MethodDeclaration curMethod && input instanceof MethodDeclaration inputMethod) {
+                if (curMethod.name.equals(inputMethod.name) && curMethod.returnType.equals(inputMethod.returnType)
+                        && curMethod.params.equals(inputMethod.params)) {
+                    return i;
+                }
+            }
+            if (cur instanceof ConstructorDeclaration curConstructor && input instanceof ConstructorDeclaration inputCons) {
+                if (curConstructor.params.equals(inputCons.params)) {
+                    return i;
+                }
             }
         }
         return -1;
