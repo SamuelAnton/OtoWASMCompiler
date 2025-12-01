@@ -12,10 +12,8 @@ import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
 import Syntaxer.ast.declaration.FieldDeclaration;
 import Syntaxer.ast.declaration.MethodDeclaration;
-import Syntaxer.ast.statement.IfStatement;
-import Syntaxer.ast.statement.ReturnStatement;
-import Syntaxer.ast.statement.Statement;
-import Syntaxer.ast.statement.WhileStatement;
+import Syntaxer.ast.expression.SuperConstructorCall;
+import Syntaxer.ast.statement.*;
 
 import java.util.*;
 
@@ -39,6 +37,8 @@ public class SemanticAnalyser {
         analyzeClassMembers(); // Get class members with checks
         analyzeKeywordUsage();
         checkReturnCoverage();
+        checkConstructorsHaveSuperCalls();
+
 
         SmartChecker smartChecker = new SmartChecker();
         smartChecker.visit(program);
@@ -86,6 +86,40 @@ public class SemanticAnalyser {
                 // Check inheretence from existing class
                 if (c.superClass == null) {
                     throw new ValidationException("Class " + c.name + " extends undefined class " + c.baseClass.name);
+                }
+            }
+        }
+    }
+
+    private void checkConstructorsHaveSuperCalls() {
+        for (ClassDeclaration cls : program.classes) {
+            if (cls.baseClass == null)
+                continue;
+            if (cls.constructorDeclarations.isEmpty()) {
+                throw new ValidationException(
+                        "Constructor of class '" + cls.name
+                                + "' must call super(...), but constructor body is empty."
+                );
+            }
+            for (ConstructorDeclaration cons : cls.constructorDeclarations) {
+                if (cons.body == null || cons.body.isEmpty()) {
+                    throw new ValidationException(
+                            "Constructor of class '" + cls.name
+                                    + "' must call super(...), but constructor body is empty."
+                    );
+                }
+
+                Statement first = cons.body.getFirst();
+                boolean hasSuperCall = false;
+                if (first instanceof ExpressionStatement es &&
+                        es.value instanceof SuperConstructorCall sc) {
+                    hasSuperCall = true;
+                }
+                if (!hasSuperCall) {
+                    throw new ValidationException(
+                            "Constructor of class '" + cls.name
+                                    + "' must begin with super(...). Missing super call."
+                    );
                 }
             }
         }
@@ -277,5 +311,11 @@ public class SemanticAnalyser {
 
         // if no return found at end then fail
         return false;
+    }
+
+    private void setSuperConstructor() {
+        Map<String, List<ConstructorDeclaration>> constructors = new HashMap<>();
+        for (ClassDeclaration cur : program.classes) {
+        }
     }
 }
