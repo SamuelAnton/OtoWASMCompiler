@@ -133,7 +133,6 @@ public class DeadLocalRemover {
             case BooleanLiteral bl -> true;
             case StringLiteral sl -> true;
             case ArrayLiteral al -> al.size >= 0;
-            case ConstructorCall cc -> cc.args.stream().allMatch(this::isPure);
             default -> false;
         };
     }
