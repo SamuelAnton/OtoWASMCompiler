@@ -38,7 +38,7 @@ public class ClassDeclaration extends ASTNode {
 
     public void fillFieldsList() {
         if (superClass != null) {
-            fieldsList.addAll(superClass.fieldDeclarations);
+            fieldsList.addAll(superClass.fieldsList);
         }
         fieldsList.addAll(fieldDeclarations);
     }
@@ -55,8 +55,7 @@ public class ClassDeclaration extends ASTNode {
 
     public void fillMethodsList() {
         if (superClass != null) {
-            methodsList.addAll(superClass.constructorDeclarations);
-            methodsList.addAll(superClass.methodDeclarations);
+            methodsList.addAll(superClass.methodsList);
         }
         methodsList.addAll(constructorDeclarations);
         methodsList.addAll(methodDeclarations);
