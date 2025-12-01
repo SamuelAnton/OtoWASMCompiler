@@ -6,6 +6,7 @@ import java.util.List;
 
 public class SuperConstructorCall extends Expression{
     public final List<Expression> args;
+    public ConstructorCall constructorCall;
 
     public SuperConstructorCall(List<Expression> args) {
         super(-1, -1);

@@ -5,13 +5,14 @@ import Semanticer.Components.Checkers.SmartChecker;
 import Semanticer.Components.Exceptions.ValidationException;
 import Semanticer.Components.Types.ProgramTypes;
 import Semanticer.optimizer.ProgramOptimizer;
-import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
-import Syntaxer.ast.component.ExtensionType;
+import Syntaxer.ast.component.Param;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
 import Syntaxer.ast.declaration.FieldDeclaration;
 import Syntaxer.ast.declaration.MethodDeclaration;
+import Syntaxer.ast.expression.ConstructorCall;
+import Syntaxer.ast.expression.Expression;
 import Syntaxer.ast.expression.SuperConstructorCall;
 import Syntaxer.ast.statement.*;
 
@@ -37,15 +38,15 @@ public class SemanticAnalyser {
         analyzeClassMembers(); // Get class members with checks
         analyzeKeywordUsage();
         checkReturnCoverage();
-        checkConstructorsHaveSuperCalls();
-
 
         SmartChecker smartChecker = new SmartChecker();
         smartChecker.visit(program);
 
         ProgramOptimizer optimizer = new ProgramOptimizer();
         optimizer.optimize(program);
-        optimizer.optimize(program);
+        checkConstructorsHaveSuperCalls();
+        resolveSuperConstructorCalls();
+
 
         // PrettyPrinter printer = new PrettyPrinter();
         // program.accept(printer);
@@ -313,9 +314,69 @@ public class SemanticAnalyser {
         return false;
     }
 
-    private void setSuperConstructor() {
-        Map<String, List<ConstructorDeclaration>> constructors = new HashMap<>();
-        for (ClassDeclaration cur : program.classes) {
+    private void resolveSuperConstructorCalls() {
+        for (ClassDeclaration cls : program.classes) {
+            if (cls.baseClass == null) continue;
+            String baseName = cls.baseClass.name;
+            ClassDeclaration superCls = nameToClass.get(baseName);
+
+            if (superCls == null)
+                throw new ValidationException("Unknown base class " + baseName);
+
+            List<ConstructorDeclaration> superCons = superCls.constructorDeclarations;
+
+            for (ConstructorDeclaration cons : cls.constructorDeclarations) {
+
+                SuperConstructorCall call = findSuperConstructorCall(cons.body);
+                if (call == null)
+                    throw new ValidationException(cls.name +
+                            " constructor must call super(...)");
+
+                ConstructorDeclaration match =
+                        resolveMatchingConstructor(superCons, call);
+
+                if (match == null)
+                    throw new ValidationException("No matching constructor in " +
+                            baseName + " for super(...)");
+
+                call.constructorCall = new ConstructorCall(baseName, call.args);
+            }
         }
+    }
+
+    private SuperConstructorCall findSuperConstructorCall(List<Statement> body) {
+        if (body == null) return null;
+
+        for (Statement s : body) {
+            if (s instanceof ExpressionStatement es &&
+                    es.value instanceof SuperConstructorCall sc) {
+                return sc;
+            }
+        }
+        return null;
+    }
+
+    private ConstructorDeclaration resolveMatchingConstructor(
+            List<ConstructorDeclaration> superConstructors,
+            SuperConstructorCall call) {
+        for (ConstructorDeclaration cand : superConstructors) {
+            if (cand.params.size() != call.args.size())
+                continue;
+            boolean ok = true;
+
+            for (int i = 0; i < cand.params.size(); i++) {
+                Param p = cand.params.get(i);
+                Expression arg = call.args.get(i);
+                String expectedType = p.t.name;
+
+                if (!expectedType.equals(arg.type.type)) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) return cand;
+        }
+
+        return null;
     }
 }
