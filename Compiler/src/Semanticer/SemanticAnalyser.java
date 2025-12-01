@@ -340,6 +340,7 @@ public class SemanticAnalyser {
                             baseName + " for super(...)");
 
                 call.constructorCall = new ConstructorCall(baseName, call.args);
+                call.resolvedConstructor = match;
             }
         }
     }
