@@ -7,6 +7,7 @@ import Semanticer.Components.Types.ProgramTypes;
 import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
+import Syntaxer.ast.component.ExtensionType;
 import Syntaxer.ast.declaration.ClassDeclaration;
 import Syntaxer.ast.declaration.ConstructorDeclaration;
 import Syntaxer.ast.declaration.FieldDeclaration;
@@ -62,6 +63,15 @@ public class SemanticAnalyser {
 
             // Define new types
             c.type = ProgramTypes.newType(c.name);
+        }
+        Set<String> foundClasses = new HashSet<>();
+        for (ClassDeclaration curClass : classes) {
+            if (curClass.baseClass != null) {
+                if (!foundClasses.contains(curClass.baseClass.name)) {
+                    throw new ValidationException("Incorrect order of classes!");
+                }
+            }
+            foundClasses.add(curClass.name);
         }
         // Resole inheretence
         for (ClassDeclaration c : classes) {
