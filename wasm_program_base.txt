@@ -19,6 +19,8 @@
     ;;; List
     (table $list_methods 8 funcref)
     (global $LIST_VTABLE i32 (i32.const 304))
+    ;;; User's functions
+    (table $user_methods 128 funcref)
 
 
     ;; == Types of functions ==
@@ -1531,13 +1533,22 @@
         (local.get $ptr)
     )
 
-    ;; Get method from type and index
-    (func $get_method (param $type_id i32) (param $method_index i32) (result i32)
+    ;; Get method from object and method index
+    ;; Params: $obj i32, $method_index i32
+    ;; Returns: function index in table
+    (func $get_method (param $obj i32) (param $method_index i32) (result i32)
+        (local $vtable i32)
+        
+        ;; Get VTable pointer from object
+        (local.set $vtable (i32.load (local.get $obj)))
+        
+        ;; Skip type ID (4 bytes) and method count (4 bytes)
+        ;; Then get method at index: vtable + 8 + (method_index * 4)
         (i32.load 
-        (i32.add 
-            (i32.add (local.get $type_id) (i32.const 4))
-            (i32.mul (local.get $method_index) (i32.const 4))
-        )
+            (i32.add 
+                (i32.add (local.get $vtable) (i32.const 8))
+                (i32.mul (local.get $method_index) (i32.const 4))
+            )
         )
     )
 
@@ -1649,4 +1660,3 @@
     (export "List.tail" (func $List.tail))
     (export "List.size" (func $List.size))
     (export "List.isEmpty" (func $List.isEmpty))
-)

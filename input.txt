@@ -1,9 +1,29 @@
-class Math is
-    method square(x: Integer) : Integer is
-        if (false) then
-            return Integer(1);
-        else
-            return Integer(2);
-        end
+class Animal is
+    this() is end
+
+    method sound() : Integer => 1
+end
+
+class Dog extends Animal is
+    this() is
+        super();
+    end
+
+    method sound() : Integer => 2
+end
+
+class Polymorphism is
+    method polymorphism(a : Animal) is
+        a.sound();
+    end
+end
+
+class Tester is
+    this() is
+        var x : Animal();
+        var y : Dog();
+        var z : Polymorphism();
+        z.polymorphism(x);
+        z.polymorphism(y);
     end
 end

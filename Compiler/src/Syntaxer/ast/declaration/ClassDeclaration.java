@@ -58,7 +58,35 @@ public class ClassDeclaration extends ASTNode {
             methodsList.addAll(superClass.methodsList);
         }
         methodsList.addAll(constructorDeclarations);
-        methodsList.addAll(methodDeclarations);
+        boolean setted = false;
+        for (MethodDeclaration m : methodDeclarations) {
+            for (int i = 0; i < methodsList.size(); i++) {
+                if (methodsList.get(i) instanceof MethodDeclaration) {
+                    if (checkSameSignature(m, (MethodDeclaration) methodsList.get(i))) {
+                        methodsList.set(i, m);
+                        setted = true;
+                        break;
+                    }
+                }
+            }
+            if (!setted) {
+                methodsList.add(m);
+            }
+        }
+    }
+
+    private boolean checkSameSignature(MethodDeclaration m1, MethodDeclaration m2) {
+        if (m1.name == m2.name) {
+            if (m1.params.size() == m2.params.size()) {
+                for (int i = 0; i < m1.params.size(); i++) {
+                    if (m1.params.get(i).type.type != m2.params.get(i).type.type) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     public int getIndexByMethod(MemberDeclaration input) {
@@ -70,7 +98,8 @@ public class ClassDeclaration extends ASTNode {
                     return i;
                 }
             }
-            if (cur instanceof ConstructorDeclaration curConstructor && input instanceof ConstructorDeclaration inputCons) {
+            if (cur instanceof ConstructorDeclaration curConstructor
+                    && input instanceof ConstructorDeclaration inputCons) {
                 if (curConstructor.params.equals(inputCons.params)) {
                     return i;
                 }

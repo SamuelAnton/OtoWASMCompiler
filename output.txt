@@ -1,878 +1,1885 @@
 (module
-  (memory 1)
-  (global $heap_ptr (mut i32) (i32.const 0x1000))
-  (export "memory" (memory 0))
+    ;; == memory configuration ==
+    (memory (export "memory") 1)
+    (global $heap_ptr (mut i32) (i32.const 0x1000))
 
-  ;; Virtual Method Tables
-  (data (i32.const 256) "\0d\00\00\00")  ;;; vtable size for Integer
-  (data (i32.const 260) "\00\00\00\00")  ;;; method 0
-  (data (i32.const 264) "\00\00\00\00")  ;;; method 1
-  (data (i32.const 268) "\00\00\00\00")  ;;; method 2
-  (data (i32.const 272) "\00\00\00\00")  ;;; method 3
-  (data (i32.const 276) "\00\00\00\00")  ;;; method 4
-  (data (i32.const 280) "\00\00\00\00")  ;;; method 5
-  (data (i32.const 284) "\00\00\00\00")  ;;; method 6
-  (data (i32.const 288) "\00\00\00\00")  ;;; method 7
-  (data (i32.const 292) "\00\00\00\00")  ;;; method 8
-  (data (i32.const 296) "\00\00\00\00")  ;;; method 9
-  (data (i32.const 300) "\00\00\00\00")  ;;; method 10
-  (data (i32.const 304) "\00\00\00\00")  ;;; method 11
-  (data (i32.const 308) "\00\00\00\00")  ;;; method 12
-  (data (i32.const 312) "\0c\00\00\00")  ;;; vtable size for Real
-  (data (i32.const 316) "\00\00\00\00")  ;;; method 0
-  (data (i32.const 320) "\00\00\00\00")  ;;; method 1
-  (data (i32.const 324) "\00\00\00\00")  ;;; method 2
-  (data (i32.const 328) "\00\00\00\00")  ;;; method 3
-  (data (i32.const 332) "\00\00\00\00")  ;;; method 4
-  (data (i32.const 336) "\00\00\00\00")  ;;; method 5
-  (data (i32.const 340) "\00\00\00\00")  ;;; method 6
-  (data (i32.const 344) "\00\00\00\00")  ;;; method 7
-  (data (i32.const 348) "\00\00\00\00")  ;;; method 8
-  (data (i32.const 352) "\00\00\00\00")  ;;; method 9
-  (data (i32.const 356) "\00\00\00\00")  ;;; method 10
-  (data (i32.const 360) "\00\00\00\00")  ;;; method 11
-  (data (i32.const 364) "\05\00\00\00")  ;;; vtable size for Boolean
-  (data (i32.const 368) "\00\00\00\00")  ;;; method 0
-  (data (i32.const 372) "\00\00\00\00")  ;;; method 1
-  (data (i32.const 376) "\00\00\00\00")  ;;; method 2
-  (data (i32.const 380) "\00\00\00\00")  ;;; method 3
-  (data (i32.const 384) "\00\00\00\00")  ;;; method 4
-  (data (i32.const 388) "\04\00\00\00")  ;;; vtable size for Array
-  (data (i32.const 392) "\00\00\00\00")  ;;; method 0
-  (data (i32.const 396) "\00\00\00\00")  ;;; method 1
-  (data (i32.const 400) "\00\00\00\00")  ;;; method 2
-  (data (i32.const 404) "\00\00\00\00")  ;;; method 3
-  (data (i32.const 408) "\04\00\00\00")  ;;; vtable size for List
-  (data (i32.const 412) "\00\00\00\00")  ;;; method 0
-  (data (i32.const 416) "\00\00\00\00")  ;;; method 1
-  (data (i32.const 420) "\00\00\00\00")  ;;; method 2
-  (data (i32.const 424) "\00\00\00\00")  ;;; method 3
-  (data (i32.const 428) "\01\00\00\00")  ;;; vtable size for Math
-  (data (i32.const 432) "\00\00\00\00")  ;;; method 0
+    ;; == Virtual method tables for static types ==
+    ;;; Integer
+    (table $integer_methods 28 funcref)
+    (global $INTEGER_VTABLE i32 (i32.const 0))
+    ;;; Real
+    (table $real_methods 27 funcref)
+    (global $REAL_VTABLE i32 (i32.const 112))
+    ;;; Boolean
+    (table $boolean_methods 7 funcref)
+    (global $BOOLEAN_VTABLE i32 (i32.const 228))
+    ;;; Array
+    (table $array_methods 4 funcref)
+    (global $ARRAY_VTABLE i32 (i32.const 256))
+    ;;; List
+    (table $list_methods 8 funcref)
+    (global $LIST_VTABLE i32 (i32.const 304))
+    ;;; User's functions
+    (table $user_methods 128 funcref)
 
 
-  ;; -------Translated Program start--------
-  (func $Math.square_Integer (param $this i32) (param $x i32) (result i32)
-    (local $temp i32)
-    (local $result i32)
-    ;;; Method body for Math.square_Integer
-    i32.const 2
-    call $create_integer
-    return
-  )
+    ;; == Types of functions ==
+    ;;; Integer functions
+    (type $static_int (func (result i32)))
+    (type $unary_int (func (param i32) (result i32)))
+    (type $binary_int (func (param i32 i32) (result i32)))
+    ;;; Real functions
+    (type $static_real (func (result i32)))
+    (type $unary_real (func (param i32) (result i32)))
+    (type $binary_real (func (param i32 i32) (result i32)))
+    ;;; Boolean functions
+    (type $unary_bool (func (param i32) (result i32)))
+    (type $binary_bool (func (param i32 i32) (result i32)))
+    ;;; Array functions
+    (type $array_constructor (func (param i32 i32) (result i32)))  ;; this, length
+    (type $array_unary (func (param i32) (result i32)))            ;; this -> result
+    (type $array_get (func (param i32 i32) (result i32)))          ;; this, index -> element
+    (type $array_set (func (param i32 i32 i32) (result i32)))      ;; this, index, value -> this
+    ;;; List functions
+    (type $list_constructor0 (func (param i32) (result i32)))
+    (type $list_constructor1 (func (param i32 i32) (result i32)))
+    (type $list_constructor2 (func (param i32 i32 i32) (result i32)))
+    (type $list_append (func (param i32 i32) (result i32)))
+    (type $list_head (func (param i32) (result i32)))
+    (type $list_tail (func (param i32) (result i32)))
+    (type $list_size (func (param i32) (result i32)))
+    (type $list_is_empty (func (param i32) (result i32)))
 
-  (data (i32.const 432) "\00\10\00\00")  ;;; Math.square_Integer
-  (func $Math.constructor (result i32)
+    ;; == Memory allocation for virtual tables for static types ==
+
+    ;;; Virtual method table for Integer
+    (data (i32.const 0) "\1c\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $integer_methods
+    (data (i32.const 4) "\00\00\00\00")  ;; constructor_Integer
+    (data (i32.const 8) "\01\00\00\00")  ;; constructor_Real
+    (data (i32.const 12) "\02\00\00\00") ;; Min (static)
+    (data (i32.const 16) "\03\00\00\00") ;; Max (static)
+    (data (i32.const 20) "\04\00\00\00") ;; toReal
+    (data (i32.const 24) "\05\00\00\00") ;; toBoolean
+    (data (i32.const 28) "\06\00\00\00") ;; UnaryMinus
+    (data (i32.const 32) "\07\00\00\00") ;; Plus_Integer
+    (data (i32.const 36) "\08\00\00\00") ;; Plus_Real
+    (data (i32.const 40) "\09\00\00\00") ;; Minus_Integer
+    (data (i32.const 44) "\0a\00\00\00") ;; Minus_Real
+    (data (i32.const 48) "\0b\00\00\00") ;; Mult_Integer
+    (data (i32.const 52) "\0c\00\00\00") ;; Mult_Real
+    (data (i32.const 56) "\0d\00\00\00") ;; Div_Integer
+    (data (i32.const 60) "\0e\00\00\00") ;; Div_Real
+    (data (i32.const 64) "\0f\00\00\00") ;; Rem_Integer
+    (data (i32.const 68) "\10\00\00\00") ;; Less_Integer
+    (data (i32.const 72) "\11\00\00\00") ;; Less_Real
+    (data (i32.const 76) "\12\00\00\00") ;; LessEqual_Integer
+    (data (i32.const 80) "\13\00\00\00") ;; LessEqual_Real
+    (data (i32.const 84) "\14\00\00\00") ;; Greater_Integer
+    (data (i32.const 88) "\15\00\00\00") ;; Greater_Real
+    (data (i32.const 92) "\16\00\00\00") ;; GreaterEqual_Integer
+    (data (i32.const 96) "\17\00\00\00") ;; GreaterEqual_Real
+    (data (i32.const 100) "\18\00\00\00") ;; Equal_Integer
+    (data (i32.const 104) "\19\00\00\00") ;; Equal_Real
+
+    ;;;  Virtual method table for Real
+    (data (i32.const 112) "\1b\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $real_methods
+    (data (i32.const 116) "\00\00\00\00")  ;; constructor_Real
+    (data (i32.const 120) "\01\00\00\00")  ;; constructor_Integer
+    (data (i32.const 124) "\02\00\00\00")  ;; Min (static)
+    (data (i32.const 128) "\03\00\00\00")  ;; Max (static)
+    (data (i32.const 132) "\04\00\00\00")  ;; Epsilon (static)
+    (data (i32.const 136) "\05\00\00\00")  ;; toInteger
+    (data (i32.const 140) "\06\00\00\00")  ;; UnaryMinus
+    (data (i32.const 144) "\07\00\00\00")  ;; Plus_Real
+    (data (i32.const 148) "\08\00\00\00")  ;; Plus_Integer
+    (data (i32.const 152) "\09\00\00\00")  ;; Minus_Real
+    (data (i32.const 156) "\0a\00\00\00")  ;; Minus_Integer
+    (data (i32.const 160) "\0b\00\00\00")  ;; Mult_Real
+    (data (i32.const 164) "\0c\00\00\00")  ;; Mult_Integer
+    (data (i32.const 168) "\0d\00\00\00")  ;; Div_Integer
+    (data (i32.const 172) "\0e\00\00\00")  ;; Div_Real
+    (data (i32.const 176) "\0f\00\00\00")  ;; Rem_Integer
+    (data (i32.const 180) "\10\00\00\00")  ;; Less_Real
+    (data (i32.const 184) "\11\00\00\00")  ;; Less_Integer
+    (data (i32.const 188) "\12\00\00\00")  ;; LessEqual_Real
+    (data (i32.const 192) "\13\00\00\00")  ;; LessEqual_Integer
+    (data (i32.const 196) "\14\00\00\00")  ;; Greater_Real
+    (data (i32.const 200) "\15\00\00\00")  ;; Greater_Integer
+    (data (i32.const 204) "\16\00\00\00")  ;; GreaterEqual_Real
+    (data (i32.const 208) "\17\00\00\00")  ;; GreaterEqual_Integer
+    (data (i32.const 212) "\18\00\00\00")  ;; Equal_Real
+    (data (i32.const 216) "\19\00\00\00")  ;; Equal_Integer
+
+    ;;;  Virtual method table for Boolean
+    (data (i32.const 228) "\07\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $boolean_methods
+    (data (i32.const 232) "\00\00\00\00")  ;; constructor_Boolean
+    (data (i32.const 236) "\01\00\00\00")  ;; toInteger
+    (data (i32.const 240) "\02\00\00\00")  ;; Or
+    (data (i32.const 244) "\03\00\00\00")  ;; And
+    (data (i32.const 248) "\04\00\00\00")  ;; Xor
+    (data (i32.const 252) "\05\00\00\00")  ;; Not
+
+    ;;; Virtual method table for Array
+    (data (i32.const 256) "\04\00\00\00")  ;; Table size (number of functions)
+    ;;;; Method's index in table $array_methods
+    (data (i32.const 260) "\00\00\00\00")  ;; constructor
+    (data (i32.const 264) "\01\00\00\00")  ;; Length
+    (data (i32.const 268) "\02\00\00\00")  ;; get
+    (data (i32.const 272) "\03\00\00\00")  ;; set
+
+    ;;; Virtual method table for List
+    (data (i32.const 304) "\08\00\00\00")  ;; Table size (8 методов)
+    ;;;; Method's index in table $list_methods
+    (data (i32.const 308) "\00\00\00\00")  ;; constructor0 (empty)
+    (data (i32.const 312) "\01\00\00\00")  ;; constructor1 (single element)
+    (data (i32.const 316) "\02\00\00\00")  ;; constructor2 (element + count)
+    (data (i32.const 320) "\03\00\00\00")  ;; append
+    (data (i32.const 324) "\04\00\00\00")  ;; head
+    (data (i32.const 328) "\05\00\00\00")  ;; tail
+    (data (i32.const 332) "\06\00\00\00")  ;; size
+    (data (i32.const 336) "\07\00\00\00")  ;; isEmpty
+
+
+    ;; == Initialization of methods tables for static types ==
+    ;;; Integer table
+    (elem (table $integer_methods) (i32.const 0)
+        $Integer.constructor_Integer
+        $Integer.constructor_Real
+        $Integer.Min
+        $Integer.Max
+        $Integer.toReal
+        $Integer.toBoolean
+        $Integer.UnaryMinus
+        $Integer.Plus_Integer
+        $Integer.Plus_Real
+        $Integer.Minus_Integer
+        $Integer.Minus_Real
+        $Integer.Mult_Integer
+        $Integer.Mult_Real
+        $Integer.Div_Integer
+        $Integer.Div_Real
+        $Integer.Rem_Integer
+        $Integer.Less_Integer
+        $Integer.Less_Real
+        $Integer.LessEqual_Integer
+        $Integer.LessEqual_Real
+        $Integer.Greater_Integer
+        $Integer.Greater_Real
+        $Integer.GreaterEqual_Integer
+        $Integer.GreaterEqual_Real
+        $Integer.Equal_Integer
+        $Integer.Equal_Real
+    )
+
+    ;;; Real table
+    (elem (table $real_methods) (i32.const 0)
+        $Real.constructor_Real
+        $Real.constructor_Integer
+        $Real.Min
+        $Real.Max
+        $Real.Epsilon
+        $Real.toInteger
+        $Real.UnaryMinus
+        $Real.Plus_Real
+        $Real.Plus_Integer
+        $Real.Minus_Real
+        $Real.Minus_Integer
+        $Real.Mult_Real
+        $Real.Mult_Integer
+        $Real.Div_Integer
+        $Real.Div_Real
+        $Real.Rem_Integer
+        $Real.Less_Real
+        $Real.Less_Integer
+        $Real.LessEqual_Real
+        $Real.LessEqual_Integer
+        $Real.Greater_Real
+        $Real.Greater_Integer
+        $Real.GreaterEqual_Real
+        $Real.GreaterEqual_Integer
+        $Real.Equal_Real
+        $Real.Equal_Integer
+    )
+
+    ;;; Boolean table  
+    (elem (table $boolean_methods) (i32.const 0)
+        $Boolean.constructor_Boolean
+        $Boolean.toInteger
+        $Boolean.Or
+        $Boolean.And
+        $Boolean.Xor
+        $Boolean.Not
+    )
+
+    ;;; Array table
+    (elem (table $array_methods) (i32.const 0)
+        $Array.constructor
+        $Array.Length
+        $Array.get
+        $Array.set
+    )
+
+    ;;; List table
+    (elem (table $list_methods) (i32.const 0)
+        $List.constructor0
+        $List.constructor1
+        $List.constructor2
+        $List.append
+        $List.head
+        $List.tail
+        $List.size
+        $List.isEmpty
+    )
+
+    ;; == Methods realization for static types ==
+
+    ;;; Integer methods
+    ;;;; Helper functions
+    
+    ;;;;; Gets value from integer object
+    (func $get_integer_value (param $obj i32) (result i32)
+        (i32.load offset=8 (local.get $obj))
+    )
+
+    ;;;;; Creates integer object
+    (func $create_integer (param $value i32) (result i32)
+        (local $obj i32)
+        
+        ;;;;;; Memory allocation (12 bytes)
+        (local.set $obj (call $allocate (i32.const 12)))
+        
+        ;;;;;; [0-4] Method table pointer (0 for integer)
+        (i32.store (local.get $obj) (i32.const 0))
+        
+        ;;;;;; [4-8] Type ID (0 for integer)
+        (i32.store offset=4 (local.get $obj) (i32.const 0))
+        
+        ;;;;;; [8-12] Integer value from parameters
+        (i32.store offset=8 (local.get $obj) (local.get $value))
+        
+        ;;;;;; Return pointer to object in heap
+        (local.get $obj)
+    )
+
+    ;;; Dynamic Constructors
+    (func $Integer.constructor_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.store)
+    (local.get $this)
+    )
+
+    (func $Integer.constructor_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (i32.trunc_f64_s)
+    (i32.store)
+    (local.get $this)
+    )
+
+    ;;;; Static fields
+    (func $Integer.Min (type $static_int) (result i32)
+    (i32.const -2147483648)
+    (call $create_integer)
+    )
+
+    (func $Integer.Max (type $static_int) (result i32)
+    (i32.const 2147483647)
+    (call $create_integer)
+    )
+
+    ;;;; Translation
+    (func $Integer.toReal (type $unary_int)
+    (param $this i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (call $create_real)
+    )
+
+    (func $Integer.toBoolean (type $unary_int)
+    (param $this i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.const 0)
+    (i32.ne)
+    (call $create_boolean)
+    )
+
+    ;;;; Unary operators
+    (func $Integer.UnaryMinus (type $unary_int)
+    (param $this i32) (result i32)
+    (i32.const 0)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.sub)
+    (call $create_integer)
+    )
+
+    ;;;; Binary arithmetic operators
+    (func $Integer.Plus_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.add)
+    (call $create_integer)
+    )
+
+    (func $Integer.Minus_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.sub)
+    (call $create_integer)
+    )
+
+    (func $Integer.Mult_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.mul)
+    (call $create_integer)
+    )
+
+    (func $Integer.Div_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.div_s)
+    (call $create_integer)
+    )
+
+    (func $Integer.Rem_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.rem_s)
+    (call $create_integer)
+    )
+
+    (func $Integer.Plus_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.add)
+    (call $create_real)
+    )
+
+    (func $Integer.Minus_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.sub)
+    (call $create_real)
+    )
+
+    (func $Integer.Mult_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.mul)
+    (call $create_real)
+    )
+
+    (func $Integer.Div_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.div)
+    (call $create_real)
+    )
+
+    ;;;; Binary compare operators
+    (func $Integer.Less_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.lt_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.LessEqual_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.le_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Greater_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.gt_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.GreaterEqual_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.ge_s)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Equal_Integer (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (i32.eq)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Less_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.lt)
+    (call $create_boolean)
+    )
+
+    (func $Integer.LessEqual_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.le)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Greater_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.gt)
+    (call $create_boolean)
+    )
+
+    (func $Integer.GreaterEqual_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.ge)
+    (call $create_boolean)
+    )
+
+    (func $Integer.Equal_Real (type $binary_int)
+    (param $this i32) (param $other i32) (result i32)
+    (local.get $this)
+    (i32.const 8)
+    (i32.add)
+    (i32.load)
+    (f64.convert_i32_s)
+    (local.get $other)
+    (i32.const 8)
+    (i32.add)
+    (f64.load)
+    (f64.eq)
+    (call $create_boolean)
+    )
+
+    ;;; Real methods
+    ;;;; Helper functions
+    (func $create_real (param $value f64) (result i32)
+        (local $obj i32)
+        (local.set $obj (call $allocate (i32.const 16)))
+        
+        ;;;;; VTABLE pointer for Real
+        (i32.store (local.get $obj) (i32.const 112))
+        
+        ;;;;; Type ID (1 for Real)
+        (i32.store offset=4 (local.get $obj) (i32.const 1))
+        
+        ;;;;; Value (f64)
+        (f64.store offset=8 (local.get $obj) (local.get $value))
+        
+        (local.get $obj)
+    )
+
+    (func $get_real_value (param $obj i32) (result f64)
+        (f64.load offset=8 (local.get $obj))
+    )
+
+    ;;;; Constructors
+    (func $Real.constructor_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.store)
+        (local.get $this)
+    )
+    
+    (func $Real.constructor_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.store)
+        (local.get $this)
+    )
+    
+    ;;;; Static fields
+    (func $Real.Min (type $static_real) (result i32)
+        (f64.const -1.7976931348623157e308)  ;;;;; MIN_DOUBLE
+        (call $create_real)
+    )
+    
+    (func $Real.Max (type $static_real) (result i32)
+        (f64.const 1.7976931348623157e308)   ;;;;; MAX_DOUBLE
+        (call $create_real)
+    )
+    
+    (func $Real.Epsilon (type $static_real) (result i32)
+        (f64.const 2.220446049250313e-16)    ;;;;; DBL_EPSILON
+        (call $create_real)
+    )
+    
+    ;;;; Translation
+    (func $Real.toInteger (type $unary_real)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (i32.trunc_f64_s)
+        (call $create_integer)
+    )
+    
+    ;;;;; Unary operations
+    (func $Real.UnaryMinus (type $unary_real)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.neg)
+        (call $create_real)
+    )
+    
+    ;;;;; Binary arithmetic operations
+    (func $Real.Plus_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.add)
+        (call $create_real)
+    )
+    
+    (func $Real.Plus_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.add)
+        (call $create_real)
+    )
+    
+    (func $Real.Minus_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.sub)
+        (call $create_real)
+    )
+    
+    (func $Real.Minus_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.sub)
+        (call $create_real)
+    )
+    
+    (func $Real.Mult_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.mul)
+        (call $create_real)
+    )
+    
+    (func $Real.Mult_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.mul)
+        (call $create_real)
+    )
+    
+    (func $Real.Div_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.div)
+        (call $create_real)
+    )
+    
+    (func $Real.Div_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.div)
+        (call $create_real)
+    )
+    
+    (func $Real.Rem_Integer (type $binary_real)
+    (param $this i32) (param $other i32) (result i32)
+        (local $a f64)
+        (local $b f64)
+        
+        ;; Load the Real value
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.set $a)
+        
+        ;; Load the Integer value and convert to f64
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (local.set $b)
+        
+        ;; Calculate remainder: a - b * floor(a / b)
+        (local.get $a)
+        (local.get $b)
+        (f64.div)
+        (f64.floor)
+        (local.get $b)
+        (f64.mul)
+        (local.get $a)
+        (f64.sub)
+        
+        (call $create_real)
+    )
+    
+    ;;;; Comparing operations
+    (func $Real.Less_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.lt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Less_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.lt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.LessEqual_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.le)
+        (call $create_boolean)
+    )
+    
+    (func $Real.LessEqual_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.le)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Greater_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.gt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Greater_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.gt)
+        (call $create_boolean)
+    )
+    
+    (func $Real.GreaterEqual_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.ge)
+        (call $create_boolean)
+    )
+    
+    (func $Real.GreaterEqual_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.ge)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Equal_Real (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (f64.eq)
+        (call $create_boolean)
+    )
+    
+    (func $Real.Equal_Integer (type $binary_real)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (f64.load)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (f64.convert_i32_s)
+        (f64.eq)
+        (call $create_boolean)
+    )
+
+    ;;; Boolean methods
+    ;;;; helper functions
+    (func $create_boolean (param $value i32) (result i32)
+        (local $obj i32)
+        (local.set $obj (call $allocate (i32.const 12)))
+        
+        ;; VTABLE pointer для Boolean
+        (i32.store (local.get $obj) (i32.const 228))
+        
+        ;; Type ID (2 для Boolean)
+        (i32.store offset=4 (local.get $obj) (i32.const 2))
+        
+        ;; Значение (0 = false, 1 = true)
+        (i32.store offset=8 (local.get $obj) (local.get $value))
+        
+        (local.get $obj)
+    )
+
+    (func $create_true (result i32)
+        (i32.const 1)
+        (call $create_boolean)
+    )
+    
+    (func $create_false (result i32)
+        (i32.const 0)
+        (call $create_boolean)
+    )
+
+    (func $get_boolean_value (param $obj i32) (result i32)
+        (i32.load offset=8 (local.get $obj))
+    )
+
+    ;;;; Constructors
+    (func $Boolean.constructor_Boolean (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.store)
+        (local.get $this)
+    )
+    
+    ;;;; Translation
+    (func $Boolean.toInteger (type $unary_bool)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (call $create_integer)
+    )
+    
+    ;;;; Logical operations
+    (func $Boolean.Or (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (i32.or)
+        (call $create_boolean)
+    )
+    
+    (func $Boolean.And (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (i32.and)
+        (call $create_boolean)
+    )
+    
+    (func $Boolean.Xor (type $binary_bool)
+        (param $this i32) (param $other i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (local.get $other)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.ne)
+        (i32.xor)
+        (call $create_boolean)
+    )
+    
+    (func $Boolean.Not (type $unary_bool)
+        (param $this i32) (result i32)
+        (local.get $this)
+        (i32.const 8)
+        (i32.add)
+        (i32.load)
+        (i32.const 0)
+        (i32.eq)
+        (call $create_boolean)
+    )
+
+
+    ;; == Array methods implementation ==
+
+    ;;; Helper functions for Array
+    
+    ;;;;; Creates array object
+    (func $create_array (param $length i32) (result i32)
+        (local $arr i32)
+        (local $total_size i32)
+        (local $i i32)
+        (local $data_start i32)
+        
+        ;; Рассчитываем общий размер: заголовок (12 байт) + данные (length * 4 байта)
+        (local.set $total_size 
+            (i32.add (i32.const 12) (i32.mul (local.get $length) (i32.const 4)))
+        )
+        
+        ;; Выделяем память
+        (local.set $arr (call $allocate (local.get $total_size)))
+        
+        ;; Инициализируем поля массива
+        (i32.store (local.get $arr) (global.get $ARRAY_VTABLE))  ;; vtable pointer
+        (i32.store offset=4 (local.get $arr) (i32.const 3))      ;; type_id = 3 (Array)
+        (i32.store offset=8 (local.get $arr) (local.get $length)) ;; длина массива
+        
+        ;; Инициализируем элементы нулями (null pointers)
+        (local.set $data_start (i32.add (local.get $arr) (i32.const 12)))
+        (local.set $i (i32.const 0))
+        (loop $init_loop
+            (i32.store 
+                (i32.add (local.get $data_start) (i32.mul (local.get $i) (i32.const 4)))
+                (i32.const 0)  ;; null pointer
+            )
+            (local.set $i (i32.add (local.get $i) (i32.const 1)))
+            (br_if $init_loop (i32.lt_u (local.get $i) (local.get $length)))
+        )
+        
+        (local.get $arr)
+    )
+
+    ;;;;; Gets array length
+    (func $get_array_length (param $arr i32) (result i32)
+        (i32.load offset=8 (local.get $arr))
+    )
+
+    ;;;;; Gets element from array
+    (func $get_array_element (param $arr i32) (param $index i32) (result i32)
+        ;; Проверка границ (опционально, но рекомендуется)
+        (if (i32.ge_u (local.get $index) (i32.load offset=8 (local.get $arr)))
+            (then
+                ;; Выход за границы - возвращаем null
+                (return (i32.const 0))
+            )
+        )
+        
+        (i32.load 
+            (i32.add 
+                (i32.add (local.get $arr) (i32.const 12))
+                (i32.mul (local.get $index) (i32.const 4))
+            )
+        )
+    )
+
+    ;;;;; Sets element in array
+    (func $set_array_element (param $arr i32) (param $index i32) (param $value i32) (result i32)
+        ;; Проверка границ
+        (if (i32.ge_u (local.get $index) (i32.load offset=8 (local.get $arr)))
+            (then
+                ;; Выход за границы - просто возвращаем массив без изменений
+                (return (local.get $arr))
+            )
+        )
+        
+        (i32.store 
+            (i32.add 
+                (i32.add (local.get $arr) (i32.const 12))
+                (i32.mul (local.get $index) (i32.const 4))
+            )
+            (local.get $value)
+        )
+        
+        (local.get $arr)
+    )
+
+    ;;; Array class methods
+
+    (func $Array.constructor (type $array_constructor)
+        (param $this i32) (param $length i32) (result i32)
+        ;; Уже инициализирован в create_array, просто возвращаем this
+        (local.get $this)
+    )
+
+    (func $Array.Length (type $array_unary)
+        (param $this i32) (result i32)
+        (i32.load offset=8 (local.get $this))
+    )
+
+    (func $Array.get (type $array_get)
+        (param $this i32) (param $index i32) (result i32)
+        ;; Используем вспомогательную функцию с проверкой границ
+        (call $get_array_element (local.get $this) (local.get $index))
+    )
+
+    (func $Array.set (type $array_set)
+        (param $this i32) (param $index i32) (param $value i32) (result i32)
+        ;; Используем вспомогательную функцию с проверкой границ
+        (call $set_array_element (local.get $this) (local.get $index) (local.get $value))
+    )
+
+    ;; == List helper functions ==
+
+    ;;; Creates a new List object
+    (func $create_list (result i32)
+        (local $list i32)
+        
+        ;; Allocate memory for List object (20 bytes)
+        (local.set $list (call $allocate (i32.const 20)))
+        
+        ;; Initialize fields
+        (i32.store (local.get $list) (global.get $LIST_VTABLE))  ;; vtable pointer
+        (i32.store offset=4 (local.get $list) (i32.const 4))     ;; type_id = 4 (List)
+        (i32.store offset=8 (local.get $list) (i32.const 0))     ;; size = 0
+        (i32.store offset=12 (local.get $list) (i32.const 0))    ;; capacity = 0
+        (i32.store offset=16 (local.get $list) (i32.const 0))    ;; data = null
+        
+        (local.get $list)
+    )
+
+    ;;; Gets the internal array from a List
+    (func $list_get_data (param $list i32) (result i32)
+        (i32.load offset=16 (local.get $list))
+    )
+
+    ;;; Sets the internal array for a List
+    (func $list_set_data (param $list i32) (param $data i32)
+        (i32.store offset=16 (local.get $list) (local.get $data))
+    )
+
+    ;;; Gets the size of a List
+    (func $list_get_size (param $list i32) (result i32)
+        (i32.load offset=8 (local.get $list))
+    )
+
+    ;;; Sets the size of a List
+    (func $list_set_size (param $list i32) (param $size i32)
+        (i32.store offset=8 (local.get $list) (local.get $size))
+    )
+
+    ;;; Gets the capacity of a List
+    (func $list_get_capacity (param $list i32) (result i32)
+        (i32.load offset=12 (local.get $list))
+    )
+
+    ;;; Sets the capacity of a List
+    (func $list_set_capacity (param $list i32) (param $capacity i32)
+        (i32.store offset=12 (local.get $list) (local.get $capacity))
+    )
+
+    ;;; Ensures the List has enough capacity, resizing if necessary
+    (func $list_ensure_capacity (param $list i32) (param $min_capacity i32)
+        (local $current_capacity i32)
+        (local $new_capacity i32)
+        (local $current_data i32)
+        (local $new_data i32)
+        (local $i i32)
+        
+        ;; Get current capacity
+        (local.set $current_capacity (call $list_get_capacity (local.get $list)))
+        
+        ;; If current capacity is sufficient, return
+        (if (i32.ge_u (local.get $current_capacity) (local.get $min_capacity))
+            (then (return))
+        )
+        
+        ;; Calculate new capacity (double until sufficient)
+        (local.set $new_capacity (local.get $current_capacity))
+        (if (i32.eq (local.get $new_capacity) (i32.const 0))
+            (then (local.set $new_capacity (i32.const 4)))
+        )
+        
+        (loop $calculate_capacity
+            (if (i32.lt_u (local.get $new_capacity) (local.get $min_capacity))
+                (then
+                    (local.set $new_capacity (i32.mul (local.get $new_capacity) (i32.const 2)))
+                    (br $calculate_capacity)
+                )
+            )
+        )
+        
+        ;; Create new array with new capacity
+        (local.set $new_data (call $create_array (local.get $new_capacity)))
+        
+        ;; Copy existing elements if any
+        (local.set $current_data (call $list_get_data (local.get $list)))
+        (if (i32.ne (local.get $current_data) (i32.const 0))
+            (then
+                (local.set $i (i32.const 0))
+                (loop $copy_loop
+                    (if (i32.lt_u (local.get $i) (call $list_get_size (local.get $list)))
+                        (then
+                            ;; Copy element from old array to new array
+                            (drop (call $set_array_element
+                                (local.get $new_data)
+                                (local.get $i)
+                                (call $get_array_element (local.get $current_data) (local.get $i))
+                            ))
+                            (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                            (br $copy_loop)
+                        )
+                    )
+                )
+            )
+        )
+        
+        ;; Update List fields
+        (call $list_set_data (local.get $list) (local.get $new_data))
+        (call $list_set_capacity (local.get $list) (local.get $new_capacity))
+    )
+
+    ;; == List methods implementation ==
+
+    ;;; Empty constructor
+    (func $List.constructor0 (type $list_constructor0)
+        (param $this i32) (result i32)
+        ;; List is already initialized as empty by create_list
+        (local.get $this)
+    )
+
+    ;;; Constructor with single element`
+    (func $List.constructor1 (type $list_constructor1)
+        (param $this i32) (param $element i32) (result i32)
+        ;; Ensure capacity for at least 1 element
+        (call $list_ensure_capacity (local.get $this) (i32.const 1))
+        
+        ;; Add the element
+        (drop (call $set_array_element
+            (call $list_get_data (local.get $this))
+            (i32.const 0)
+            (local.get $element)
+        ))
+        
+        ;; Update size
+        (call $list_set_size (local.get $this) (i32.const 1))
+        
+        (local.get $this)
+    )
+
+    ;;; Constructor with element and count
+    (func $List.constructor2 (type $list_constructor2)
+        (param $this i32) (param $element i32) (param $count i32) (result i32)
+        (local $i i32)
+        (local $data i32)
+        
+        ;; Ensure capacity
+        (call $list_ensure_capacity (local.get $this) (local.get $count))
+        
+        ;; Get data array
+        (local.set $data (call $list_get_data (local.get $this)))
+        
+        ;; Fill with copies of the element
+        (local.set $i (i32.const 0))
+        (loop $fill_loop
+            (if (i32.lt_u (local.get $i) (local.get $count))
+                (then
+                    (call $set_array_element
+                        (local.get $data)
+                        (local.get $i)
+                        (local.get $element)
+                    )
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br $fill_loop)
+                )
+            )
+        )
+        
+        ;; Update size
+        (call $list_set_size (local.get $this) (local.get $count))
+        
+        (local.get $this)
+    )
+
+    ;;; Append element to list
+    (func $List.append (type $list_append)
+        (param $this i32) (param $element i32) (result i32)
+        (local $size i32)
+        (local $data i32)
+        
+        ;; Get current size and ensure capacity
+        (local.set $size (call $list_get_size (local.get $this)))
+        (call $list_ensure_capacity (local.get $this) (i32.add (local.get $size) (i32.const 1)))
+        
+        ;; Get data array
+        (local.set $data (call $list_get_data (local.get $this)))
+        
+        ;; Add element at the end
+        (drop (call $set_array_element
+            (local.get $data)
+            (local.get $size)
+            (local.get $element)
+        ))
+        
+        ;; Update size
+        (call $list_set_size (local.get $this) (i32.add (local.get $size) (i32.const 1)))
+        
+        (local.get $this)
+    )
+
+    ;;; Get first element (head)
+    (func $List.head (type $list_head)
+        (param $this i32) (result i32)
+        (local $size i32)
+        
+        (local.set $size (call $list_get_size (local.get $this)))
+        
+        ;; Check if list is empty
+        (if (i32.eq (local.get $size) (i32.const 0))
+            (then
+                ;; Return null for empty list (you might want to throw an error instead)
+                (return (i32.const 0))
+            )
+        )
+        
+        ;; Return first element
+        (call $get_array_element
+            (call $list_get_data (local.get $this))
+            (i32.const 0)
+        )
+    )
+
+    ;;; Get tail (list without first element)
+    (func $List.tail (type $list_tail)
+        (param $this i32) (result i32)
+        (local $size i32)
+        (local $new_list i32)
+        (local $data i32)
+        (local $new_data i32)
+        (local $i i32)
+        
+        (local.set $size (call $list_get_size (local.get $this)))
+        
+        ;; If list is empty or has only one element, return empty list
+        (if (i32.le_u (local.get $size) (i32.const 1))
+            (then
+                (return (call $create_list))
+            )
+        )
+        
+        ;; Create new list
+        (local.set $new_list (call $create_list))
+        
+        ;; Ensure capacity for new list
+        (call $list_ensure_capacity (local.get $new_list) (i32.sub (local.get $size) (i32.const 1)))
+        
+        ;; Get data arrays
+        (local.set $data (call $list_get_data (local.get $this)))
+        (local.set $new_data (call $list_get_data (local.get $new_list)))
+        
+        ;; Copy all elements except first
+        (local.set $i (i32.const 1))
+        (loop $copy_loop
+            (if (i32.lt_u (local.get $i) (local.get $size))
+                (then
+                    (drop (call $set_array_element
+                        (local.get $new_data)
+                        (i32.sub (local.get $i) (i32.const 1))
+                        (call $get_array_element (local.get $data) (local.get $i))
+                    ))
+                    (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                    (br $copy_loop)
+                )
+            )
+        )
+        
+        ;; Set size of new list
+        (call $list_set_size (local.get $new_list) (i32.sub (local.get $size) (i32.const 1)))
+        
+        (local.get $new_list)
+    )
+
+    ;;; Get size of list
+    (func $List.size (type $list_size)
+        (param $this i32) (result i32)
+        ;; Return size as Integer object
+        (call $list_get_size (local.get $this))
+        (call $create_integer)
+    )
+
+    ;;; Check if list is empty
+    (func $List.isEmpty (type $list_is_empty)
+        (param $this i32) (result i32)
+        ;; Return Boolean object
+        (call $list_get_size (local.get $this))
+        (i32.eqz)
+        (call $create_boolean)
+    )
+
+    ;; == Other Helper methods ==
+
+    ;; Allocator for objects (size -> pointer)
+    (func $allocate (param $size i32) (result i32)
+        (local $ptr i32)
+        
+        (local.set $ptr (global.get $heap_ptr))
+        
+        (global.set $heap_ptr
+        (i32.add (global.get $heap_ptr) (local.get $size))
+        )
+        
+        (local.get $ptr)
+    )
+
+    ;; Get method from object and method index
+    ;; Params: $obj i32, $method_index i32
+    ;; Returns: function index in table
+    (func $get_method (param $obj i32) (param $method_index i32) (result i32)
+        (local $vtable i32)
+        
+        ;; Get VTable pointer from object
+        (local.set $vtable (i32.load (local.get $obj)))
+        
+        ;; Skip type ID (4 bytes) and method count (4 bytes)
+        ;; Then get method at index: vtable + 8 + (method_index * 4)
+        (i32.load 
+            (i32.add 
+                (i32.add (local.get $vtable) (i32.const 8))
+                (i32.mul (local.get $method_index) (i32.const 4))
+            )
+        )
+    )
+
+
+
+
+
+    ;; == Test function and exports ==
+    
+     (func (export "_start")
+        ;; Create test objects
+        (local $int1 i32)
+        (local $int2 i32) 
+        (local $real1 i32)
+        (local $bool1 i32)
+        (local $bool2 i32)
+        (local $arr i32)
+        (local $list1 i32)
+        (local $list2 i32)
+        (local $list3 i32)
+        (local $temp i32)
+        
+        ;; Create basic objects
+        (local.set $int1 (call $create_integer (i32.const 42)))
+        (local.set $int2 (call $create_integer (i32.const 100)))
+        (local.set $real1 (call $create_real (f64.const 3.14)))
+        (local.set $bool1 (call $create_boolean (i32.const 1)))  ;; true
+        (local.set $bool2 (call $create_boolean (i32.const 0)))  ;; false
+        
+        ;; Test basic operations
+        (drop (call $Integer.Plus_Integer (local.get $int1) (local.get $int2)))
+        (drop (call $Integer.toReal (local.get $int1)))
+        (drop (call $Real.toInteger (local.get $real1)))
+        (drop (call $Boolean.And (local.get $bool1) (local.get $bool2)))
+        (drop (call $Boolean.Not (local.get $bool1)))
+        
+        ;; Test Array functionality
+        (local.set $arr (call $create_array (i32.const 3)))
+        ;; Set array elements
+        (drop (call $Array.set (local.get $arr) (i32.const 0) (local.get $int1)))
+        (drop (call $Array.set (local.get $arr) (i32.const 1) (local.get $int2)))
+        (drop (call $Array.set (local.get $arr) (i32.const 2) (local.get $int1)))
+        ;; Test array get
+        (drop (call $Array.get (local.get $arr) (i32.const 1)))
+        
+        ;; Test List functionality
+        ;; Test empty list
+        (local.set $list1 (call $create_list))
+        (drop (call $List.constructor0 (local.get $list1)))
+        
+        ;; Test list with single element
+        (local.set $list2 (call $create_list))
+        (drop (call $List.constructor1 (local.get $list2) (local.get $int1)))
+        
+        ;; Test list with multiple copies
+        (local.set $list3 (call $create_list))
+        (drop (call $List.constructor2 (local.get $list3) (local.get $int2) (i32.const 3)))
+        
+        ;; Test append
+        (drop (call $List.append (local.get $list2) (local.get $int2)))
+        (drop (call $List.append (local.get $list2) (local.get $int1)))
+        
+        ;; Test head and tail
+        (local.set $temp (call $List.head (local.get $list2)))
+        (local.set $temp (call $List.tail (local.get $list2)))
+        
+        ;; Test size and isEmpty
+        (drop (call $List.size (local.get $list1)))
+        (drop (call $List.isEmpty (local.get $list1)))
+        (drop (call $List.size (local.get $list2)))
+        (drop (call $List.isEmpty (local.get $list2)))
+        (drop (call $List.size (local.get $list3)))
+        (drop (call $List.isEmpty (local.get $list3)))
+    )
+    
+    ;; Function to get current heap size for testing
+    (func (export "get_heap_size") (result i32)
+        (global.get $heap_ptr)
+    )
+
+    ;; Export additional functions for testing
+    (export "create_integer" (func $create_integer))
+    (export "create_real" (func $create_real))
+    (export "create_boolean" (func $create_boolean))
+    (export "create_true" (func $create_true))
+    (export "create_false" (func $create_false))
+    (export "get_integer_value" (func $get_integer_value))
+    (export "get_real_value" (func $get_real_value))
+    (export "get_boolean_value" (func $get_boolean_value))
+    (export "Integer.Plus_Integer" (func $Integer.Plus_Integer))
+    (export "Integer.toReal" (func $Integer.toReal))
+    (export "Real.toInteger" (func $Real.toInteger))
+    (export "Boolean.And" (func $Boolean.And))
+    (export "Boolean.Not" (func $Boolean.Not))
+
+    ;; Export Array functions for testing
+    (export "create_array" (func $create_array))
+    (export "Array.Length" (func $Array.Length))
+    (export "Array.get" (func $Array.get))
+    (export "Array.set" (func $Array.set))
+
+    ;; Export List functions for testing
+    (export "create_list" (func $create_list))
+    (export "List.constructor0" (func $List.constructor0))
+    (export "List.constructor1" (func $List.constructor1))
+    (export "List.constructor2" (func $List.constructor2))
+    (export "List.append" (func $List.append))
+    (export "List.head" (func $List.head))
+    (export "List.tail" (func $List.tail))
+    (export "List.size" (func $List.size))
+    (export "List.isEmpty" (func $List.isEmpty))
+
+;; == User method table initialization ==
+    (elem (table $user_methods) (i32.const 0)
+        $animal.constructor_default
+        $animal.sound
+        $dog.constructor_default
+        $dog.sound
+        $polymorphism.constructor_default
+        $polymorphism.polymorphism_Animal
+        $tester.constructor_default
+    )
+;; == Virtual method tables for user defined types types ==
+;;; VTable for Animal
+  (data (i32.const 340) 5)  ;; Type ID
+  (data (i32.const 344) 2)  ;; Method count
+  (data (i32.const 348) 0)  ;; Constructor index
+  (data (i32.const 352) 1)  ;; Method sound index
+  (global $ANIMAL_VTABLE i32 (i32.const 340))
+
+;;; VTable for Dog
+  (data (i32.const 356) 6)  ;; Type ID
+  (data (i32.const 360) 3)  ;; Method count
+  (data (i32.const 364) 0)  ;; Constructor index
+  (data (i32.const 368) 3)  ;; Method sound index
+  (data (i32.const 372) 2)  ;; Constructor index
+  (global $DOG_VTABLE i32 (i32.const 356))
+
+;;; VTable for Polymorphism
+  (data (i32.const 376) 7)  ;; Type ID
+  (data (i32.const 380) 1)  ;; Method count
+  (data (i32.const 384) 5)  ;; Method polymorphism index
+  (global $POLYMORPHISM_VTABLE i32 (i32.const 376))
+
+;;; VTable for Tester
+  (data (i32.const 388) 8)  ;; Type ID
+  (data (i32.const 392) 1)  ;; Method count
+  (data (i32.const 396) 6)  ;; Constructor index
+  (global $TESTER_VTABLE i32 (i32.const 388))
+
+;;; Creates Animal object
+(func $create_animal (result i32)
     (local $obj i32)
-    (local $temp i32)
-    ;;; Allocate object of size 12
-    i32.const 12
-    call $allocate
-    local.set $obj
-    local.get $obj
-    i32.const 428
-    i32.store
-    local.get $obj
-    i32.const 8
-    i32.store offset=4
-    local.get $obj
-  )
-
-
-  ;; -------Translated Program end--------
-
-  (func $Integer.Plus (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.add
-    call $create_integer
-  )
-
-  (func $Integer.Minus (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.sub
-    call $create_integer
-  )
-
-  (func $Integer.Mult (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.mul
-    call $create_integer
-  )
-
-  (func $Integer.Div (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.div_s
-    call $create_integer
-  )
-
-  (func $Integer.Rem (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.rem_s
-    call $create_integer
-  )
-
-  (func $Integer.Less (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.lt_s
-    call $create_integer
-  )
-
-  (func $Integer.LessEqual (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.le_s
-    call $create_integer
-  )
-
-  (func $Integer.Greater (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.gt_s
-    call $create_integer
-  )
-
-  (func $Integer.GreaterEqual (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.ge_s
-    call $create_integer
-  )
-
-  (func $Integer.Equal (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.eq
-    call $create_integer
-  )
-
-  (func $Integer.UnaryMinus (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    i32.const 0
-    i32.sub
-    call $create_integer
-  )
-
-  (func $Integer.toReal (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    f64.convert_i32_s
-    call $create_real
-  )
-
-  (func $Integer.toBoolean (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    i32.const 0
-    i32.ne
-    call $create_boolean
-  )
-
-  (func $Real.Rem (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    call $real_rem
-    call $create_real
-  )
-
-  (func $Real.Plus (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.add
-    call $create_real
-  )
-
-  (func $Real.Minus (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.sub
-    call $create_real
-  )
-
-  (func $Real.Mult (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.mul
-    call $create_real
-  )
-
-  (func $Real.Div (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.div
-    call $create_real
-  )
-
-  (func $Real.Less (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.lt
-    call $create_boolean
-  )
-
-  (func $Real.LessEqual (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.le
-    call $create_boolean
-  )
-
-  (func $Real.Greater (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.gt
-    call $create_boolean
-  )
-
-  (func $Real.GreaterEqual (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.ge
-    call $create_boolean
-  )
-
-  (func $Real.Equal (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    local.get $other
-    f64.load offset=8
-    f64.eq
-    call $create_boolean
-  )
-
-  (func $Real.UnaryMinus (param $this i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    f64.neg
-    call $create_real
-  )
-
-  (func $Real.toInteger (param $this i32) (result i32)
-    local.get $this
-    f64.load offset=8
-    i32.trunc_f64_s
-    call $create_integer
-  )
-
-  (func $Boolean.Or (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.or
-    call $create_boolean
-  )
-
-  (func $Boolean.And (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.and
-    call $create_boolean
-  )
-
-  (func $Boolean.Xor (param $this i32) (param $other i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    local.get $other
-    i32.load offset=8
-    i32.xor
-    call $create_boolean
-  )
-
-  (func $Boolean.Not (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    i32.eqz
-    call $create_boolean
-  )
-
-  (func $Boolean.toInteger (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    call $create_integer
-  )
-
-  (func $Array.Length (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    call $create_integer
-  )
-
-  (func $List.size (param $this i32) (result i32)
-    local.get $this
-    i32.load offset=8
-    call $create_integer
-  )
-
-  ;; Runtime functions
-
-  (func $allocate (param $size i32) (result i32)
-    (local $ptr i32)
-    global.get $heap_ptr
-    local.set $ptr
-    global.get $heap_ptr
-    local.get $size
-    i32.add
-    global.set $heap_ptr
-    local.get $ptr
-  )
-
-  (func $create_integer (param $value i32) (result i32)
-    (local $obj i32)
-    i32.const 12  ;;; size: header(8) + value(4)
-    call $allocate
-    local.set $obj
-    local.get $obj
-    i32.const 256  ;;; Integer vtable
-    i32.store
-    local.get $obj
-    i32.const 0  ;;; Integer type ID
-    i32.store offset=4
-    local.get $obj
-    local.get $value
-    i32.store offset=8
-    local.get $obj
-  )
-
-  (func $create_real (param $value f64) (result i32)
-    (local $obj i32)
-    i32.const 16  ;;; size: header(8) + value(8)
-    call $allocate
-    local.set $obj
-    local.get $obj
-    i32.const 312  ;;; Real vtable
-    i32.store
-    local.get $obj
-    i32.const 1  ;;; Real type ID
-    i32.store offset=4
-    local.get $obj
-    local.get $value
-    f64.store offset=8
-    local.get $obj
-  )
-
-  (func $create_boolean (param $value i32) (result i32)
-    (local $obj i32)
-    i32.const 12  ;;; size: header(8) + value(4)
-    call $allocate
-    local.set $obj
-    local.get $obj
-    i32.const 364  ;;; Boolean vtable
-    i32.store
-    local.get $obj
-    i32.const 2  ;;; Boolean type ID
-    i32.store offset=4
-    local.get $obj
-    local.get $value
-    i32.store offset=8
-    local.get $obj
-  )
-
-  (func $create_array (param $size i32) (result i32)
-    (local $obj i32)
-    (local $array_data i32)
+    (local $field_ptr i32)
     (local $i i32)
-    ;;; Calculate total size: header(8) + length(4) + data_ptr(4) + capacity(4)
-    i32.const 20
-    call $allocate
-    local.set $obj
-    
-    ;;; Initialize header
-    local.get $obj
-    i32.const 388  ;;; Array vtable
-    i32.store
-    local.get $obj
-    i32.const 3  ;;; Array type ID
-    i32.store offset=4
-    
-    ;;; Store array length and capacity
-    local.get $obj
-    local.get $size
-    i32.store offset=8
-    local.get $obj
-    local.get $size
-    i32.store offset=16
-    
-    ;;; Allocate and initialize array data
-    local.get $size
-    i32.const 4
-    i32.mul
-    call $allocate
-    local.set $array_data
-    
-    ;;; Store data pointer
-    local.get $obj
-    local.get $array_data
-    i32.store offset=12
-    
-    ;;; Initialize array elements to null (0)
-    i32.const 0
-    local.set $i
-    loop $init_loop
-      local.get $i
-      local.get $size
-      i32.lt_s
-      if
-        local.get $array_data
-        local.get $i
-        i32.const 4
-        i32.mul
-        i32.add
-        i32.const 0
-        i32.store
-        local.get $i
-        i32.const 1
-        i32.add
-        local.set $i
-        br $init_loop
-      end
-    end
-    
-    local.get $obj
-  )
 
-  (func $create_list (result i32)
+    ;;;; Allocate memory: header (4 bytes) + fields (0 fields * 4 bytes)
+    (local.set $obj (call $allocate (i32.const 4)))
+
+    ;;;; [0-4] VTable pointer
+    (i32.store (local.get $obj) (global.get $ANIMAL_VTABLE))
+
+    (local.get $obj)
+)
+;;; Creates Dog object
+(func $create_dog (result i32)
     (local $obj i32)
-    (local $data_ptr i32)
-    i32.const 24  ;;; size: header(8) + length(4) + capacity(4) + data_ptr(4) + size(4)
-    call $allocate
-    local.set $obj
-    
-    ;;; Initialize header
-    local.get $obj
-    i32.const 408  ;;; List vtable
-    i32.store
-    local.get $obj
-    i32.const 4  ;;; List type ID
-    i32.store offset=4
-    
-    ;;; Initialize list fields
-    local.get $obj
-    i32.const 0   ;;; initial length
-    i32.store offset=8
-    local.get $obj
-    i32.const 10  ;;; initial capacity
-    i32.store offset=12
-    local.get $obj
-    i32.const 0   ;;; initial size
-    i32.store offset=20
-    
-    ;;; Allocate initial data array
-    i32.const 40  ;;; 10 elements * 4 bytes
-    call $allocate
-    local.set $data_ptr
-    local.get $obj
-    local.get $data_ptr
-    i32.store offset=16
-    
-    local.get $obj
-  )
-
-  (func $Array.get (param $this i32) (param $index i32) (result i32)
-    (local $data_ptr i32)
-    (local $length i32)
-    ;;; Bounds check
-    local.get $this
-    i32.load offset=8
-    local.set $length
-    local.get $index
-    i32.const 0
-    i32.lt_s
-    local.get $index
-    local.get $length
-    i32.ge_s
-    i32.or
-    if
-      i32.const 0  ;;; return null on out of bounds
-      return
-    end
-    
-    ;;; Load element
-    local.get $this
-    i32.load offset=12
-    local.set $data_ptr
-    local.get $data_ptr
-    local.get $index
-    i32.const 4
-    i32.mul
-    i32.add
-    i32.load
-  )
-
-  (func $Array.set (param $this i32) (param $index i32) (param $value i32)
-    (local $data_ptr i32)
-    (local $length i32)
-    ;;; Bounds check
-    local.get $this
-    i32.load offset=8
-    local.set $length
-    local.get $index
-    i32.const 0
-    i32.lt_s
-    local.get $index
-    local.get $length
-    i32.ge_s
-    i32.or
-    if
-      return  ;;; ignore out of bounds
-    end
-    
-    ;;; Store element
-    local.get $this
-    i32.load offset=12
-    local.set $data_ptr
-    local.get $data_ptr
-    local.get $index
-    i32.const 4
-    i32.mul
-    i32.add
-    local.get $value
-    i32.store
-  )
-
-  (func $real_rem (param $a f64) (param $b f64) (result f64)
-    local.get $a
-    local.get $b
-    f64.div
-    f64.trunc
-    local.get $b
-    f64.mul
-    local.get $a
-    f64.sub
-  )
-
-  (func $Array.toList (param $this i32) (result i32)
-    (local $list i32)
-    (local $length i32)
+    (local $field_ptr i32)
     (local $i i32)
-    
-    ;;; Create new list
-    call $create_list
-    local.set $list
-    
-    ;;; Get array length
-    local.get $this
-    i32.load offset=8
-    local.set $length
-    
-    ;;; Copy elements from array to list
-    i32.const 0
-    local.set $i
-    loop $copy_loop
-      local.get $i
-      local.get $length
-      i32.lt_s
-      if
-        local.get $list
-        local.get $this
-        local.get $i
-        call $Array.get
-        call $List.append
-        drop
-        local.get $i
-        i32.const 1
-        i32.add
-        local.set $i
-        br $copy_loop
-      end
-    end
-    
-    local.get $list
-  )
 
-  (func $List.append (param $this i32) (param $value i32) (result i32)
-    (local $length i32)
-    (local $capacity i32)
-    (local $data_ptr i32)
-    (local $new_data_ptr i32)
+    ;;;; Allocate memory: header (4 bytes) + fields (0 fields * 4 bytes)
+    (local.set $obj (call $allocate (i32.const 4)))
+
+    ;;;; [0-4] VTable pointer
+    (i32.store (local.get $obj) (global.get $DOG_VTABLE))
+
+    (local.get $obj)
+)
+;;; Creates Polymorphism object
+(func $create_polymorphism (result i32)
+    (local $obj i32)
+    (local $field_ptr i32)
     (local $i i32)
-    
-    ;;; Load current state
-    local.get $this
-    i32.load offset=8
-    local.set $length
-    local.get $this
-    i32.load offset=12
-    local.set $capacity
-    local.get $this
-    i32.load offset=16
-    local.set $data_ptr
-    
-    ;;; Check if we need to resize
-    local.get $length
-    local.get $capacity
-    i32.ge_s
-    if
-      ;;; Double the capacity
-      local.get $capacity
-      i32.const 2
-      i32.mul
-      local.set $capacity
-      
-      ;;; Allocate new data array
-      local.get $capacity
-      i32.const 4
-      i32.mul
-      call $allocate
-      local.set $new_data_ptr
-      
-      ;;; Copy old data
-      i32.const 0
-      local.set $i
-      loop $copy_loop
-        local.get $i
-        local.get $length
-        i32.lt_s
-        if
-          local.get $new_data_ptr
-          local.get $i
-          i32.const 4
-          i32.mul
-          i32.add
-          local.get $data_ptr
-          local.get $i
-          i32.const 4
-          i32.mul
-          i32.add
-          i32.load
-          i32.store
-          local.get $i
-          i32.const 1
-          i32.add
-          local.set $i
-          br $copy_loop
-        end
-      end
-      
-      ;;; Update list state
-      local.get $this
-      local.get $capacity
-      i32.store offset=12
-      local.get $this
-      local.get $new_data_ptr
-      i32.store offset=16
-      local.get $new_data_ptr
-      local.set $data_ptr
-    end
-    
-    ;;; Append the value
-    local.get $data_ptr
-    local.get $length
-    i32.const 4
-    i32.mul
-    i32.add
-    local.get $value
-    i32.store
-    
-    ;;; Update length and size
-    local.get $this
-    local.get $length
-    i32.const 1
-    i32.add
-    i32.store offset=8
-    local.get $this
-    local.get $length
-    i32.const 1
-    i32.add
-    i32.store offset=20
-    
-    ;;; Return the list for chaining
-    local.get $this
-  )
 
-  (func $List.head (param $this i32) (result i32)
-    (local $length i32)
-    local.get $this
-    i32.load offset=8
-    local.set $length
-    local.get $length
-    i32.const 0
-    i32.gt_s
-    if (result i32)
-      local.get $this
-      i32.load offset=16
-      i32.load
-    else
-      i32.const 0  ;;; return null for empty list
-    end
-  )
+    ;;;; Allocate memory: header (4 bytes) + fields (0 fields * 4 bytes)
+    (local.set $obj (call $allocate (i32.const 4)))
 
-  (func $List.tail (param $this i32) (result i32)
-    (local $new_list i32)
-    (local $length i32)
+    ;;;; [0-4] VTable pointer
+    (i32.store (local.get $obj) (global.get $POLYMORPHISM_VTABLE))
+
+    (local.get $obj)
+)
+;;; Creates Tester object
+(func $create_tester (result i32)
+    (local $obj i32)
+    (local $field_ptr i32)
     (local $i i32)
-    
-    local.get $this
-    i32.load offset=8
-    local.set $length
-    
-    local.get $length
-    i32.const 1
-    i32.le_s
-    if
-      call $create_list  ;;; return empty list
-      return
-    end
-    
-    ;;; Create new list
-    call $create_list
-    local.set $new_list
-    
-    ;;; Copy all but first element
-    i32.const 1
-    local.set $i
-    loop $copy_loop
-      local.get $i
-      local.get $length
-      i32.lt_s
-      if
-        local.get $new_list
-        local.get $this
-        i32.load offset=16
-        local.get $i
-        i32.const 4
-        i32.mul
-        i32.add
-        i32.load
-        call $List.append
-        drop
-        local.get $i
-        i32.const 1
-        i32.add
-        local.set $i
-        br $copy_loop
-      end
-    end
-    
-    local.get $new_list
+
+    ;;;; Allocate memory: header (4 bytes) + fields (0 fields * 4 bytes)
+    (local.set $obj (call $allocate (i32.const 4)))
+
+    ;;;; [0-4] VTable pointer
+    (i32.store (local.get $obj) (global.get $TESTER_VTABLE))
+
+    (local.get $obj)
+)
+;; == Type signatures for indirect calls ==
+(type $method_sig_0 (func (param i32) (result i32)))
+(type $method_sig_1 (func (param i32 i32) (result i32)))
+(type $method_sig_2 (func (param i32 i32 i32) (result i32)))
+(type $method_sig_3 (func (param i32 i32 i32 i32) (result i32)))
+(type $void_method_sig_0 (func (param i32)))
+(type $void_method_sig_1 (func (param i32 i32)))
+(type $void_method_sig_2 (func (param i32 i32 i32)))
+;;; Constructor for Animal
+  (func $animal.constructor_default (param $this i32) (result i32)
+    (local $temp_obj i32)
+    (local $temp_target i32)
+    (local $temp_0 i32)
+    (local $temp_1 i32)
+    (local $temp_2 i32)
+    (local $temp_3 i32)
+    (local $temp_4 i32)
+ ;;; Initialize fields
+    ;;; Empty body
+ (local.get $this)
+)
+
+;;; Method Animal.sound
+  (func $animal.sound (param $this i32) (result i32)
+    (local $temp_obj i32)
+    (local $temp_target i32)
+    (local $temp_0 i32)
+    (local $temp_1 i32)
+    (local $temp_2 i32)
+    (local $temp_3 i32)
+    (local $temp_4 i32)
+    ;;; Function body start
+    (return (i32.const 1))
+    ;;; Function body end
   )
 
-  (func $dynamic_dispatch (param $obj i32) (param $method_index i32) (result i32)
-    (local $vtable i32)
-    (local $method_ptr i32)
-    
-    ;;; Load vtable pointer from object header
-    local.get $obj
-    i32.load
-    local.set $vtable
-    
-    ;;; Calculate method pointer address: vtable + 4 (skip size) + method_index * 4
-    local.get $vtable
-    i32.const 4
-    i32.add
-    local.get $method_index
-    i32.const 4
-    i32.mul
-    i32.add
-    i32.load
-    local.set $method_ptr
-    
-    local.get $method_ptr
+;;; Constructor for Dog
+  (func $dog.constructor_default (param $this i32) (result i32)
+    (local $temp_obj i32)
+    (local $temp_target i32)
+    (local $temp_0 i32)
+    (local $temp_1 i32)
+    (local $temp_2 i32)
+    (local $temp_3 i32)
+    (local $temp_4 i32)
+ ;;; Initialize fields
+    ;;; Function body start
+    (call $animal.constructor_default (local.get $this))
+(drop)
+    ;;; Function body end
+ (local.get $this)
+)
+
+;;; Method Dog.sound
+  (func $dog.sound (param $this i32) (result i32)
+    (local $temp_obj i32)
+    (local $temp_target i32)
+    (local $temp_0 i32)
+    (local $temp_1 i32)
+    (local $temp_2 i32)
+    (local $temp_3 i32)
+    (local $temp_4 i32)
+    ;;; Function body start
+    (return (i32.const 2))
+    ;;; Function body end
   )
 
-  (func $unknown_method (result i32)
-    i32.const 0  ;;; return null
+;;; Default constructor for Polymorphism
+(func $polymorphism.constructor_default (param $this i32) (result i32)
+ ;;; Call super constructor if needed
+ ;;; Initialize fields
+ ;;; Initialize fields
+(local.get $this)
+)
+
+;;; Method Polymorphism.polymorphism
+  (func $polymorphism.polymorphism_Animal (param $this i32) (param $a i32)
+    (local $temp_obj i32)
+    (local $temp_target i32)
+    (local $temp_0 i32)
+    (local $temp_1 i32)
+    (local $temp_2 i32)
+    (local $temp_3 i32)
+    (local $temp_4 i32)
+    ;;; Function body start
+    (local.set $temp_target (local.get $a))
+(call_indirect (type $void_method_sig_0) (local.get $temp_target) (call $get_method (local.get $temp_target) (i32.const 1)))
+(drop)
+    ;;; Function body end
   )
 
-  (func $method_not_found (result i32)
-    i32.const 0  ;;; return null
-  )
+;;; Constructor for Tester
+  (func $tester.constructor_default (param $this i32) (result i32)
+    (local $x i32)
+    (local $y i32)
+    (local $z i32)
+    (local $temp_obj i32)
+    (local $temp_target i32)
+    (local $temp_0 i32)
+    (local $temp_1 i32)
+    (local $temp_2 i32)
+    (local $temp_3 i32)
+    (local $temp_4 i32)
+ ;;; Initialize fields
+    ;;; Function body start
+    (local.set $x (local.set $temp_obj (call $create_animal))
+(call $animal.constructor_default (local.get $temp_obj))
+(local.get $temp_obj))
 
-  (func $print_integer (param $value i32)
-    ;;; This would interface with WASM host environment for printing
-    ;;; For now, it's a no-op
-    local.get $value
-    drop
-  )
+    (local.set $y (local.set $temp_obj (call $create_dog))
+(call $dog.constructor_default (local.get $temp_obj))
+(local.get $temp_obj))
 
-  (func $print_real (param $value i32)
-    ;;; This would interface with WASM host environment for printing
-    ;;; For now, it's a no-op
-    local.get $value
-    drop
-  )
+    (local.set $z (local.set $temp_obj (call $create_polymorphism))
+(call $polymorphism.constructor_default (local.get $temp_obj))
+(local.get $temp_obj))
 
-  (func $print_boolean (param $value i32)
-    ;;; This would interface with WASM host environment for printing
-    ;;; For now, it's a no-op
-    local.get $value
-    drop
-  )
-
-  (func $print_string (param $str i32) (param $len i32)
-    ;;; This would interface with WASM host environment for printing
-    ;;; For now, it's a no-op
-    local.get $str
-    drop
-    local.get $len
-    drop
-  )
-
-  (func $gc_collect
-    ;;; Simple garbage collection - reset heap pointer for now
-    ;;; In a real implementation, this would be more sophisticated
-    i32.const 0x1000
-    global.set $heap_ptr
-  )
-
-  (func $get_heap_size (export "get_heap_size") (result i32)
-    global.get $heap_ptr
-    i32.const 0x1000
-    i32.sub
-  )
-
-  ;; Program entry point
-  (func $main (export "_start")
-    (local $temp i32)
-    ;;; Create instance of Math
-    call $Math.constructor
-    drop
-  )
+    (local.set $temp_target (local.get $z))
+(call_indirect (type $method_sig_1) (local.get $temp_target) (local.get $x) (call $get_method (local.get $temp_target) (i32.const 0)))
+(drop)
+    (local.set $temp_target (local.get $z))
+(call_indirect (type $method_sig_1) (local.get $temp_target) (local.get $y) (call $get_method (local.get $temp_target) (i32.const 0)))
+(drop)
+    ;;; Function body end
+ (local.get $this)
+)
 
 )

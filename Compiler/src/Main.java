@@ -4,6 +4,7 @@ import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.parser.Parser;
+import Translator.CodeGenerator2;
 import Translator.Translator;
 import Semanticer.SemanticAnalyser;
 import Semanticer.Components.Exceptions.ValidationException;
@@ -44,8 +45,6 @@ public class Main {
         Parser parser = new Parser(lexer);
         parser.yyparse();
         Program res = parser.getParserResult();
-        PrettyPrinter p = new PrettyPrinter();
-        res.accept(p);
 
         // System.out.println();
         // System.out.println();
@@ -67,5 +66,11 @@ public class Main {
         } catch (IOException e) {
             System.err.println("IOException");
         }
+
+        // PrettyPrinter p = new PrettyPrinter();
+        // res.accept(p);
+
+        // CodeGenerator2 codeGenerator2 = new CodeGenerator2(res);
+        // System.out.println(codeGenerator2.translate());
     }
 }

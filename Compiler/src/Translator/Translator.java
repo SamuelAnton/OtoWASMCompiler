@@ -1,5 +1,9 @@
 package Translator;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 import Syntaxer.ast.Program;
 
 public class Translator {
@@ -14,13 +18,26 @@ public class Translator {
         // PreTranslator t = new PreTranslator();
         // String res = t.generate(program);
 
-        CodeGenerator c = new CodeGenerator();
-        StringBuilder b = c.generate(program);
+        result.append(getBase());
 
-        return b;
+        CodeGenerator2 c = new CodeGenerator2(program);
+        result.append(c.translate());
+
+        result.append(")");
+
+        return result;
     }
 
-    public void generateFile() {
-
+    public StringBuilder getBase() {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader("wasm_program_base.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append('\n');
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return builder;
     }
 }

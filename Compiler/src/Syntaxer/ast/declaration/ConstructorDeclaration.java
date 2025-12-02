@@ -10,6 +10,7 @@ public final class ConstructorDeclaration extends MemberDeclaration {
     public final List<Param> params;
     public List<Statement> body;
     public ClassDeclaration baseClass;
+    public int number;
 
     public ConstructorDeclaration(List<Param> params, List<Statement> body) {
         super();
