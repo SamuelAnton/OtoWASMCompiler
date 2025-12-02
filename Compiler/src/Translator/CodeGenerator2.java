@@ -62,7 +62,6 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     private MethodDeclaration currentMethod;
     private ConstructorDeclaration currentConstructor;
     private int labelCounter = 0;
-    private boolean inExpressionStatement = false;
 
     // For tracking local variables and parameters in current scope
     private Set<String> currentLocalVars = new HashSet<>();
@@ -97,19 +96,19 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     }
 
     private static String intToFormattedString(int value) {
-    StringBuilder result = new StringBuilder();
-    
-    // Process each byte from least significant to most significant (little-endian)
-    for (int i = 0; i < 4; i++) {
-        // Extract the current byte (least significant byte first)
-        int currentByte = (value >> (8 * i)) & 0xFF;
-        
-        // Format as "\xx" where xx is the hexadecimal representation
-        result.append(String.format("\\%02x", currentByte));
+        StringBuilder result = new StringBuilder();
+
+        // Process each byte from least significant to most significant (little-endian)
+        for (int i = 0; i < 4; i++) {
+            // Extract the current byte (least significant byte first)
+            int currentByte = (value >> (8 * i)) & 0xFF;
+
+            // Format as "\xx" where xx is the hexadecimal representation
+            result.append(String.format("\\%02x", currentByte));
+        }
+
+        return result.toString();
     }
-    
-    return result.toString();
-}
 
     private void prepareClasses() {
         // Initialize types IDs
@@ -267,7 +266,8 @@ public class CodeGenerator2 implements ASTVisitor<String> {
 
             int methodIndex = functionToIndex.get(funcName);
             builder.append("  (data (i32.const ").append(VTablePointer).append(") ").append('"')
-                    .append(intToFormattedString(methodIndex)).append('"').append(")  ;; ").append(memberType).append(" index\n");
+                    .append(intToFormattedString(methodIndex)).append('"').append(")  ;; ").append(memberType)
+                    .append(" index\n");
             VTablePointer += 4;
         }
 
@@ -611,36 +611,6 @@ public class CodeGenerator2 implements ASTVisitor<String> {
         }
     }
 
-    // Helper to get VTable index for a method
-    private int getMethodVTableIndex(String wasmMethodName) {
-        // Look up in our functionToIndex map
-        return functionToIndex.getOrDefault(wasmMethodName, -1);
-    }
-
-    // Helper method for bounds-checked array access
-    private String generateBoundsCheckedArrayAccess(String arrayVar, String indexCode, String operation) {
-        StringBuilder sb = new StringBuilder();
-
-        // Check bounds
-        sb.append("(if (i32.ge_u ").append(indexCode)
-                .append(" (call $Array.Length ").append(arrayVar).append("))\n");
-        sb.append("    (then\n");
-        sb.append("        ;; Out of bounds - could throw error\n");
-        sb.append("        (return (i32.const 0))\n");
-        sb.append("    )\n");
-        sb.append(")\n");
-
-        // Perform operation
-        if (operation.equals("get")) {
-            sb.append("(call $Array.get ").append(arrayVar).append(" ").append(indexCode).append(")");
-        } else if (operation.equals("set")) {
-            // For set, we need the value parameter
-            // This would be handled differently
-        }
-
-        return sb.toString();
-    }
-
     // Helper: Get class name from VariableType
     private String getClassNameFromType(VariableType type) {
         if (type == null) {
@@ -872,17 +842,9 @@ public class CodeGenerator2 implements ASTVisitor<String> {
                 " in class " + targetClass.name);
     }
 
-    private int tempVarCounter = 0;
     private List<String> tempVars = new ArrayList<>();
 
-    private String allocateTempVar() {
-        String tempVar = "$temp_" + (tempVarCounter++);
-        tempVars.add(tempVar);
-        return tempVar;
-    }
-
     private void resetTempVars() {
-        tempVarCounter = 0;
         tempVars.clear();
     }
 
@@ -1387,9 +1349,7 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     @Override
     public String visit(ExpressionStatement expressionStatement) {
         // Evaluate expression and drop result
-        inExpressionStatement = true;
         String exprCode = expressionStatement.value.accept(this);
-        inExpressionStatement = false;
         return exprCode + "\n(drop)";
     }
 }

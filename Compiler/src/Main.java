@@ -1,14 +1,10 @@
 import Lexer.Lexer;
 
-import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.parser.Parser;
 import Translator.Translator;
 import Semanticer.SemanticAnalyser;
-import Semanticer.Components.Exceptions.ValidationException;
-import Semanticer.Components.Types.ProgramTypes;
-import Semanticer.Components.Types.VariableType;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,19 +31,15 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        // Create lexer and parser
+        // Create lexer
         Lexer lexer = new Lexer(inputString);
-        // for (int i = 0; i < 30; i++) {
-        // System.out.println(lexer.nextToken().value);
-        // System.out.println();
-        // }
+
+        // Syntax / Lexical analysis
         Parser parser = new Parser(lexer);
         parser.yyparse();
         Program res = parser.getParserResult();
 
-        // System.out.println();
-        // System.out.println();
-
+        // Semantic analysis
         SemanticAnalyser analyser = new SemanticAnalyser(res);
         try {
             analyser.process();
@@ -56,8 +48,8 @@ public class Main {
             return;
         }
 
+        // Code generation
         Translator translator = new Translator(res);
-
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
             writer.write(translator.translate().toString());
@@ -66,10 +58,8 @@ public class Main {
             System.err.println("IOException");
         }
 
-        // PrettyPrinter p = new PrettyPrinter();
-        // res.accept(p);
-
-        // CodeGenerator2 codeGenerator2 = new CodeGenerator2(res);
-        // System.out.println(codeGenerator2.translate());
+        // AST output
+        PrettyPrinter p = new PrettyPrinter();
+        res.accept(p);
     }
 }

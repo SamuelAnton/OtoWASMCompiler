@@ -7,7 +7,6 @@ import Syntaxer.ast.component.ExtensionType;
 import java.util.*;
 
 import Semanticer.Components.Types.VariableType;
-import Syntaxer.ast.component.Param;
 
 public class ClassDeclaration extends ASTNode {
     public final String name;

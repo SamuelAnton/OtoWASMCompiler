@@ -1,6 +1,5 @@
 package Syntaxer.ast.statement;
 
-import Semanticer.Components.Types.VariableType;
 import Syntaxer.ast.ASTVisitor;
 import Syntaxer.ast.expression.Expression;
 

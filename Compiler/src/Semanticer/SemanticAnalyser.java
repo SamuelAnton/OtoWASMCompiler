@@ -47,7 +47,6 @@ public class SemanticAnalyser {
         checkConstructorsHaveSuperCalls();
         resolveSuperConstructorCalls();
 
-
         // PrettyPrinter printer = new PrettyPrinter();
         // program.accept(printer);
     }
@@ -99,28 +98,25 @@ public class SemanticAnalyser {
             if (cls.constructorDeclarations.isEmpty()) {
                 throw new ValidationException(
                         "Constructor of class '" + cls.name
-                                + "' must call super(...), but constructor body is empty."
-                );
+                                + "' must call super(...), but constructor body is empty.");
             }
             for (ConstructorDeclaration cons : cls.constructorDeclarations) {
                 if (cons.body == null || cons.body.isEmpty()) {
                     throw new ValidationException(
                             "Constructor of class '" + cls.name
-                                    + "' must call super(...), but constructor body is empty."
-                    );
+                                    + "' must call super(...), but constructor body is empty.");
                 }
 
                 Statement first = cons.body.getFirst();
                 boolean hasSuperCall = false;
                 if (first instanceof ExpressionStatement es &&
-                        es.value instanceof SuperConstructorCall sc) {
+                        es.value instanceof SuperConstructorCall) {
                     hasSuperCall = true;
                 }
                 if (!hasSuperCall) {
                     throw new ValidationException(
                             "Constructor of class '" + cls.name
-                                    + "' must begin with super(...). Missing super call."
-                    );
+                                    + "' must begin with super(...). Missing super call.");
                 }
             }
         }
@@ -316,7 +312,8 @@ public class SemanticAnalyser {
 
     private void resolveSuperConstructorCalls() {
         for (ClassDeclaration cls : program.classes) {
-            if (cls.baseClass == null) continue;
+            if (cls.baseClass == null)
+                continue;
             String baseName = cls.baseClass.name;
             ClassDeclaration superCls = nameToClass.get(baseName);
 
@@ -332,8 +329,7 @@ public class SemanticAnalyser {
                     throw new ValidationException(cls.name +
                             " constructor must call super(...)");
 
-                ConstructorDeclaration match =
-                        resolveMatchingConstructor(superCons, call);
+                ConstructorDeclaration match = resolveMatchingConstructor(superCons, call);
 
                 if (match == null)
                     throw new ValidationException("No matching constructor in " +
@@ -346,7 +342,8 @@ public class SemanticAnalyser {
     }
 
     private SuperConstructorCall findSuperConstructorCall(List<Statement> body) {
-        if (body == null) return null;
+        if (body == null)
+            return null;
 
         for (Statement s : body) {
             if (s instanceof ExpressionStatement es &&
@@ -375,7 +372,8 @@ public class SemanticAnalyser {
                     break;
                 }
             }
-            if (ok) return cand;
+            if (ok)
+                return cand;
         }
 
         return null;
