@@ -54,6 +54,7 @@ public class CodeGenerator2 implements ASTVisitor<String> {
 
     private final HashMap<String, Integer> typesID = new HashMap<>();
     private final HashMap<String, Integer> pointerToVTable = new HashMap<>();
+    private final HashMap<String, ClassDeclaration> nameToClass = new HashMap<>();
     private int VTablePointer = 340;
 
     // Context tracking
@@ -61,12 +62,11 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     private MethodDeclaration currentMethod;
     private ConstructorDeclaration currentConstructor;
     private int labelCounter = 0;
+    private boolean inExpressionStatement = false;
 
     // For tracking local variables and parameters in current scope
     private Set<String> currentLocalVars = new HashSet<>();
     private List<String> currentParameters = new ArrayList<>();
-
-    private Map<String, Integer> methodVTableIndices = new HashMap<>();
 
     // Helper to generate unique labels
     private String newLabel(String prefix) {
@@ -87,16 +87,29 @@ public class CodeGenerator2 implements ASTVisitor<String> {
         builder.append("(type $method_sig_1 (func (param i32 i32) (result i32)))\n");
         builder.append("(type $method_sig_2 (func (param i32 i32 i32) (result i32)))\n");
         builder.append("(type $method_sig_3 (func (param i32 i32 i32 i32) (result i32)))\n");
-        builder.append("(type $void_method_sig_0 (func (param i32)))\n");
-        builder.append("(type $void_method_sig_1 (func (param i32 i32)))\n");
-        builder.append("(type $void_method_sig_2 (func (param i32 i32 i32)))\n");
 
         // realization of constructors and methods
         translateClasses();
 
         // TODO find and export entry-point
+
         return builder;
     }
+
+    private static String intToFormattedString(int value) {
+    StringBuilder result = new StringBuilder();
+    
+    // Process each byte from least significant to most significant (little-endian)
+    for (int i = 0; i < 4; i++) {
+        // Extract the current byte (least significant byte first)
+        int currentByte = (value >> (8 * i)) & 0xFF;
+        
+        // Format as "\xx" where xx is the hexadecimal representation
+        result.append(String.format("\\%02x", currentByte));
+    }
+    
+    return result.toString();
+}
 
     private void prepareClasses() {
         // Initialize types IDs
@@ -132,6 +145,7 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     private void assignTableIndices() {
         // Process all classes
         for (ClassDeclaration c : program.classes) {
+            nameToClass.put(c.name.toLowerCase(), c);
             c.fillFieldsList();
             c.fillMethodsList();
             // Assign indices to constructors
@@ -224,14 +238,14 @@ public class CodeGenerator2 implements ASTVisitor<String> {
         builder.append(";;; VTable for ").append(c.name).append("\n");
 
         // 1. Type ID (at offset 0)
-        builder.append("  (data (i32.const ").append(VTablePointer).append(") ")
-                .append(typesID.get(c.name)).append(")  ;; Type ID\n");
+        builder.append("  (data (i32.const ").append(VTablePointer).append(") ").append('"')
+                .append(intToFormattedString(typesID.get(c.name))).append('"').append(")  ;; Type ID\n");
         VTablePointer += 4;
 
         // 2. Method count (including constructor)
         int methodCount = c.methodsList.size();
-        builder.append("  (data (i32.const ").append(VTablePointer).append(") ")
-                .append(methodCount).append(")  ;; Method count\n");
+        builder.append("  (data (i32.const ").append(VTablePointer).append(") ").append('"')
+                .append(intToFormattedString(methodCount)).append('"').append(")  ;; Method count\n");
         VTablePointer += 4;
 
         // 3. Function indices
@@ -252,8 +266,8 @@ public class CodeGenerator2 implements ASTVisitor<String> {
             }
 
             int methodIndex = functionToIndex.get(funcName);
-            builder.append("  (data (i32.const ").append(VTablePointer).append(") ")
-                    .append(methodIndex).append(")  ;; ").append(memberType).append(" index\n");
+            builder.append("  (data (i32.const ").append(VTablePointer).append(") ").append('"')
+                    .append(intToFormattedString(methodIndex)).append('"').append(")  ;; ").append(memberType).append(" index\n");
             VTablePointer += 4;
         }
 
@@ -474,18 +488,19 @@ public class CodeGenerator2 implements ASTVisitor<String> {
         boolean hasReturnValue = !method.returnType.name.equals("null");
 
         // Function declaration
-        builder.append("  (func $").append(methodName).append(" (param $this i32)");
+        builder.append("  (func $").append(methodName);
+
+        // Type
+        builder.append(" (type ").append(getMethodSignatureType(method.params.size(), true)).append(")\n");
 
         // Add parameters
+        builder.append(" (param $this i32)");
         for (int i = 0; i < method.params.size(); i++) {
             builder.append(" (param $").append(method.params.get(i).name).append(" i32)");
         }
 
         // Return type
-        if (hasReturnValue) {
-            builder.append(" (result i32)");
-        }
-        builder.append("\n");
+        builder.append(" (result i32)\n");
 
         // Set locals from method body
         HashSet<String> locals = getLocals(method.body);
@@ -509,6 +524,9 @@ public class CodeGenerator2 implements ASTVisitor<String> {
         // Method body generation
         builder.append(generateFunctionBody(method.body));
 
+        if (!hasReturnValue) {
+            builder.append("  (local.get $this)");
+        }
         builder.append("  )\n\n");
 
         // Clear context
@@ -970,7 +988,6 @@ public class CodeGenerator2 implements ASTVisitor<String> {
             String initCode = n.init.accept(this);
             sb.append("(local.set $").append(n.name).append(" ").append(initCode).append(")\n");
         }
-
         return sb.toString();
     }
 
@@ -1060,6 +1077,7 @@ public class CodeGenerator2 implements ASTVisitor<String> {
             // Return object
             sb.append("(local.get $temp_obj)");
 
+            sb.append("  (drop)\n");
             return sb.toString();
         }
     }
@@ -1082,6 +1100,7 @@ public class CodeGenerator2 implements ASTVisitor<String> {
                 String className = currentClass.name.toLowerCase();
                 sb.append("(call $").append(className).append("_set_").append(varName)
                         .append(" (local.get $this) ").append(valueCode).append(")");
+                sb.append("(drop)");
             } else {
                 throw new RuntimeException("Cannot assign to variable: " + varName);
             }
@@ -1114,7 +1133,6 @@ public class CodeGenerator2 implements ASTVisitor<String> {
             throw new RuntimeException("Unsupported assignment target type: " +
                     n.target.getClass().getSimpleName());
         }
-
         return sb.toString();
     }
 
@@ -1170,16 +1188,12 @@ public class CodeGenerator2 implements ASTVisitor<String> {
             sb.append("(local.set $temp_target ").append(targetCode).append(")\n");
 
             // 4.3 Determine the correct signature type
-            // Check if method has return value by looking at the method declaration
-            boolean hasReturnValue = true; // Default assumption
-            if (currentMethod != null && currentMethod.returnType.name.equals("null")) {
-                hasReturnValue = false;
-            }
+
             // Or we need to find the actual method declaration
-            String signatureType = getMethodSignatureType(n.args.size(), hasReturnValue);
+            String signatureType = getMethodSignatureType(n.args.size(), true);
 
             // 4.4 Call via indirect dispatch with CORRECT signature
-            sb.append("(call_indirect (type ").append(signatureType).append(") ")
+            sb.append("(call_indirect $user_methods (type ").append(signatureType).append(") ")
                     .append("(local.get $temp_target)");
 
             // Add arguments
@@ -1190,7 +1204,6 @@ public class CodeGenerator2 implements ASTVisitor<String> {
             // Add function index (from VTable lookup)
             sb.append(" (call $get_method (local.get $temp_target) (i32.const ")
                     .append(methodIndex).append(")))");
-
             return sb.toString();
         }
     }
@@ -1237,54 +1250,22 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     public String visit(IfStatement n) {
         StringBuilder sb = new StringBuilder();
 
-        // Generate unique labels
-        String endLabel = newLabel("if_end");
-        String elseLabel = n.elseBody != null ? newLabel("else") : null;
-
         // Evaluate condition
         String conditionCode = n.cond.accept(this);
 
         // Extract boolean value from Boolean object
         sb.append("(if (i32.eqz (call $get_boolean_value ").append(conditionCode).append("))\n");
-        sb.append("    (then\n");
+        sb.append("    (then ");
+        String thenCode = n.thenBody.accept(this);
+        sb.append(thenCode).append("    )\n");
 
+        // Has else - branch to else block
         if (n.elseBody != null) {
-            // Has else - branch to else block
-            sb.append("        (br $").append(elseLabel).append(")\n");
-            sb.append("    )\n");
-            sb.append("    (else\n");
-
-            // Generate then block
-            String thenCode = n.thenBody.accept(this);
-            sb.append(thenCode);
-
-            // Jump to end after then
-            sb.append("        (br $").append(endLabel).append(")\n");
-            sb.append("    )\n");
-            sb.append(")\n");
-
-            // Generate else block
-            sb.append("(block $").append(elseLabel).append("\n");
+            sb.append("    (else  ");
             String elseCode = n.elseBody.accept(this);
-            sb.append(elseCode);
-            sb.append(")\n");
-        } else {
-            // No else - just skip then block if false
-            sb.append("        (br $").append(endLabel).append(")\n");
-            sb.append("    )\n");
-            sb.append("    (else\n");
-
-            // Generate then block
-            String thenCode = n.thenBody.accept(this);
-            sb.append(thenCode);
-
-            sb.append("    )\n");
-            sb.append(")\n");
+            sb.append(elseCode).append(")\n");
         }
-
-        // End label
-        sb.append("(block $").append(endLabel).append("\n");
-        sb.append(") ;; end if\n");
+        sb.append(")\n");
 
         return sb.toString();
     }
@@ -1406,7 +1387,9 @@ public class CodeGenerator2 implements ASTVisitor<String> {
     @Override
     public String visit(ExpressionStatement expressionStatement) {
         // Evaluate expression and drop result
+        inExpressionStatement = true;
         String exprCode = expressionStatement.value.accept(this);
+        inExpressionStatement = false;
         return exprCode + "\n(drop)";
     }
 }

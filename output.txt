@@ -1553,7 +1553,9 @@
     )
 
 
-
+    (func $getInt (param $ptr i32) (result i32)
+        (i32.load offset=8 (local.get $ptr))
+    )
 
 
     ;; == Test function and exports ==
@@ -1661,6 +1663,8 @@
     (export "List.size" (func $List.size))
     (export "List.isEmpty" (func $List.isEmpty))
 
+    (export "getInt" (func $getInt))
+
 ;; == User method table initialization ==
     (elem (table $user_methods) (i32.const 0)
         $animal.constructor_default
@@ -1669,35 +1673,36 @@
         $dog.sound
         $polymorphism.constructor_default
         $polymorphism.polymorphism_Animal
-        $tester.constructor_default
+        $main.constructor_default
+        $main.main
     )
 ;; == Virtual method tables for user defined types types ==
 ;;; VTable for Animal
-  (data (i32.const 340) 5)  ;; Type ID
-  (data (i32.const 344) 2)  ;; Method count
-  (data (i32.const 348) 0)  ;; Constructor index
-  (data (i32.const 352) 1)  ;; Method sound index
+  (data (i32.const 340) "\05\00\00\00")  ;; Type ID
+  (data (i32.const 344) "\02\00\00\00")  ;; Method count
+  (data (i32.const 348) "\00\00\00\00")  ;; Constructor index
+  (data (i32.const 352) "\01\00\00\00")  ;; Method sound index
   (global $ANIMAL_VTABLE i32 (i32.const 340))
 
 ;;; VTable for Dog
-  (data (i32.const 356) 6)  ;; Type ID
-  (data (i32.const 360) 3)  ;; Method count
-  (data (i32.const 364) 0)  ;; Constructor index
-  (data (i32.const 368) 3)  ;; Method sound index
-  (data (i32.const 372) 2)  ;; Constructor index
+  (data (i32.const 356) "\06\00\00\00")  ;; Type ID
+  (data (i32.const 360) "\03\00\00\00")  ;; Method count
+  (data (i32.const 364) "\00\00\00\00")  ;; Constructor index
+  (data (i32.const 368) "\03\00\00\00")  ;; Method sound index
+  (data (i32.const 372) "\02\00\00\00")  ;; Constructor index
   (global $DOG_VTABLE i32 (i32.const 356))
 
 ;;; VTable for Polymorphism
-  (data (i32.const 376) 7)  ;; Type ID
-  (data (i32.const 380) 1)  ;; Method count
-  (data (i32.const 384) 5)  ;; Method polymorphism index
+  (data (i32.const 376) "\07\00\00\00")  ;; Type ID
+  (data (i32.const 380) "\01\00\00\00")  ;; Method count
+  (data (i32.const 384) "\05\00\00\00")  ;; Method polymorphism index
   (global $POLYMORPHISM_VTABLE i32 (i32.const 376))
 
-;;; VTable for Tester
-  (data (i32.const 388) 8)  ;; Type ID
-  (data (i32.const 392) 1)  ;; Method count
-  (data (i32.const 396) 6)  ;; Constructor index
-  (global $TESTER_VTABLE i32 (i32.const 388))
+;;; VTable for Main
+  (data (i32.const 388) "\08\00\00\00")  ;; Type ID
+  (data (i32.const 392) "\01\00\00\00")  ;; Method count
+  (data (i32.const 396) "\07\00\00\00")  ;; Method main index
+  (global $MAIN_VTABLE i32 (i32.const 388))
 
 ;;; Creates Animal object
 (func $create_animal (result i32)
@@ -1741,8 +1746,8 @@
 
     (local.get $obj)
 )
-;;; Creates Tester object
-(func $create_tester (result i32)
+;;; Creates Main object
+(func $create_main (result i32)
     (local $obj i32)
     (local $field_ptr i32)
     (local $i i32)
@@ -1751,7 +1756,7 @@
     (local.set $obj (call $allocate (i32.const 4)))
 
     ;;;; [0-4] VTable pointer
-    (i32.store (local.get $obj) (global.get $TESTER_VTABLE))
+    (i32.store (local.get $obj) (global.get $MAIN_VTABLE))
 
     (local.get $obj)
 )
@@ -1760,9 +1765,6 @@
 (type $method_sig_1 (func (param i32 i32) (result i32)))
 (type $method_sig_2 (func (param i32 i32 i32) (result i32)))
 (type $method_sig_3 (func (param i32 i32 i32 i32) (result i32)))
-(type $void_method_sig_0 (func (param i32)))
-(type $void_method_sig_1 (func (param i32 i32)))
-(type $void_method_sig_2 (func (param i32 i32 i32)))
 ;;; Constructor for Animal
   (func $animal.constructor_default (param $this i32) (result i32)
     (local $temp_obj i32)
@@ -1778,7 +1780,8 @@
 )
 
 ;;; Method Animal.sound
-  (func $animal.sound (param $this i32) (result i32)
+  (func $animal.sound (type $method_sig_0)
+ (param $this i32) (result i32)
     (local $temp_obj i32)
     (local $temp_target i32)
     (local $temp_0 i32)
@@ -1787,7 +1790,7 @@
     (local $temp_3 i32)
     (local $temp_4 i32)
     ;;; Function body start
-    (return (i32.const 1))
+    (return (call $create_integer (i32.const 1)))
     ;;; Function body end
   )
 
@@ -1809,7 +1812,8 @@
 )
 
 ;;; Method Dog.sound
-  (func $dog.sound (param $this i32) (result i32)
+  (func $dog.sound (type $method_sig_0)
+ (param $this i32) (result i32)
     (local $temp_obj i32)
     (local $temp_target i32)
     (local $temp_0 i32)
@@ -1818,7 +1822,7 @@
     (local $temp_3 i32)
     (local $temp_4 i32)
     ;;; Function body start
-    (return (i32.const 2))
+    (return (call $create_integer (i32.const 2)))
     ;;; Function body end
   )
 
@@ -1831,7 +1835,8 @@
 )
 
 ;;; Method Polymorphism.polymorphism
-  (func $polymorphism.polymorphism_Animal (param $this i32) (param $a i32)
+  (func $polymorphism.polymorphism_Animal (type $method_sig_1)
+ (param $this i32) (param $a i32) (result i32)
     (local $temp_obj i32)
     (local $temp_target i32)
     (local $temp_0 i32)
@@ -1840,14 +1845,22 @@
     (local $temp_3 i32)
     (local $temp_4 i32)
     ;;; Function body start
-    (local.set $temp_target (local.get $a))
-(call_indirect (type $void_method_sig_0) (local.get $temp_target) (call $get_method (local.get $temp_target) (i32.const 1)))
-(drop)
+    (return (local.set $temp_target (local.get $a))
+(call_indirect $user_methods (type $method_sig_0) (local.get $temp_target) (call $get_method (local.get $temp_target) (i32.const 1))))
     ;;; Function body end
   )
 
-;;; Constructor for Tester
-  (func $tester.constructor_default (param $this i32) (result i32)
+;;; Default constructor for Main
+(func $main.constructor_default (param $this i32) (result i32)
+ ;;; Call super constructor if needed
+ ;;; Initialize fields
+ ;;; Initialize fields
+(local.get $this)
+)
+
+;;; Method Main.main
+  (func $main.main (type $method_sig_0)
+ (param $this i32) (result i32)
     (local $x i32)
     (local $y i32)
     (local $z i32)
@@ -1858,28 +1871,29 @@
     (local $temp_2 i32)
     (local $temp_3 i32)
     (local $temp_4 i32)
- ;;; Initialize fields
     ;;; Function body start
     (local.set $x (local.set $temp_obj (call $create_animal))
 (call $animal.constructor_default (local.get $temp_obj))
-(local.get $temp_obj))
+(local.get $temp_obj)  (drop)
+)
 
     (local.set $y (local.set $temp_obj (call $create_dog))
 (call $dog.constructor_default (local.get $temp_obj))
-(local.get $temp_obj))
+(local.get $temp_obj)  (drop)
+)
 
     (local.set $z (local.set $temp_obj (call $create_polymorphism))
 (call $polymorphism.constructor_default (local.get $temp_obj))
-(local.get $temp_obj))
-
-    (local.set $temp_target (local.get $z))
-(call_indirect (type $method_sig_1) (local.get $temp_target) (local.get $x) (call $get_method (local.get $temp_target) (i32.const 0)))
-(drop)
-    (local.set $temp_target (local.get $z))
-(call_indirect (type $method_sig_1) (local.get $temp_target) (local.get $y) (call $get_method (local.get $temp_target) (i32.const 0)))
-(drop)
-    ;;; Function body end
- (local.get $this)
+(local.get $temp_obj)  (drop)
 )
 
+    (local.set $temp_target (local.get $z))
+(call_indirect $user_methods (type $method_sig_1) (local.get $temp_target) (local.get $x) (call $get_method (local.get $temp_target) (i32.const 0)))
+(drop)
+    (return (local.set $temp_target (local.get $z))
+(call_indirect $user_methods (type $method_sig_1) (local.get $temp_target) (local.get $y) (call $get_method (local.get $temp_target) (i32.const 0))))
+    ;;; Function body end
+  )
+
+(export "main" (func $main.main))
 )

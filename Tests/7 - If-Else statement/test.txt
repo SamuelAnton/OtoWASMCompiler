@@ -1,9 +1,18 @@
 class Tester is
-    this(flag: Boolean) is
+    method test(flag: Boolean) : Integer is
+        var x : Integer(1);
         if flag then
-            return;
+            x :=  Integer(5);
         else
-            return;
+            x := Integer(2);
         end
+        return x;
+    end
+end
+
+class Main is
+    method main() : Integer is
+        var t : Tester();
+        return t.test(Boolean(false));
     end
 end

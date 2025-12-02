@@ -1,8 +1,9 @@
-class Tester is
-    this() is
+class Main is
+    method main() : Integer is
         var i : Integer(0);
         while i.Less(Integer(5)) loop
             i := i.Plus(Integer(1));
         end
+        return i;
     end
 end

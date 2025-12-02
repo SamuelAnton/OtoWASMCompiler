@@ -1,12 +1,12 @@
 class Counter is
-    var value : Integer(0)
+    var value : Integer(10)
 
     method get() : Integer => value
 end
 
-class Tester is
-    this() is
+class Main is
+    method main() : Integer is
         var c : Counter();
-        c.get();
+        return c.get();
     end
 end

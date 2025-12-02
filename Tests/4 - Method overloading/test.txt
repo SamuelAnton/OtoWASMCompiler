@@ -3,10 +3,10 @@ class Calc is
     method sum(a: Real, b: Real) : Real => a.Plus(b)
 end
 
-class Tester is
-    this() is
+class Main is
+    method main() : Real is
         var c : Calc();
-        c.sum(Integer(1), Integer(2));
+        return c.sum(Integer(1), Integer(2));
         c.sum(Real(1.5), Real(2.5));
     end
 end

@@ -4,7 +4,6 @@ import Semanticer.optimizer.ProgramOptimizer;
 import Syntaxer.ast.PrettyPrinter;
 import Syntaxer.ast.Program;
 import Syntaxer.parser.Parser;
-import Translator.CodeGenerator2;
 import Translator.Translator;
 import Semanticer.SemanticAnalyser;
 import Semanticer.Components.Exceptions.ValidationException;

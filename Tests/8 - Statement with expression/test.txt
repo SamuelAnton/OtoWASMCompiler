@@ -1,7 +1,7 @@
-class Tester is
-    this() is
+class Main is
+    method main() : Integer is
         var m : Math();
-        m.square(Integer(4));
+        return m.square(Integer(4));
     end
 end
 

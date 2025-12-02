@@ -6,10 +6,10 @@ class A is
     end
 end
 
-class Tester is
-    this() is
+class Main is
+    method main() : Integer is
         var b : A();
         b.set(Integer(10));
-        b.get();
+        return b.get();
     end
 end

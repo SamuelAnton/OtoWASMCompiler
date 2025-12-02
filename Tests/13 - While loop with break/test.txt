@@ -1,4 +1,4 @@
-class Tester is
+class Main is
     method firstEven(limit: Integer) : Integer is
         var i : Integer(0);
         while i.Less(limit) loop
@@ -10,7 +10,7 @@ class Tester is
         return Integer(-1);
     end
 
-    this() is
-        this.firstEven(Integer(10));
+    method main() : Integer is
+        return this.firstEven(Integer(10));
     end
 end

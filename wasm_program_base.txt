@@ -1553,7 +1553,9 @@
     )
 
 
-
+    (func $getInt (param $ptr i32) (result i32)
+        (i32.load offset=8 (local.get $ptr))
+    )
 
 
     ;; == Test function and exports ==
@@ -1660,3 +1662,5 @@
     (export "List.tail" (func $List.tail))
     (export "List.size" (func $List.size))
     (export "List.isEmpty" (func $List.isEmpty))
+
+    (export "getInt" (func $getInt))

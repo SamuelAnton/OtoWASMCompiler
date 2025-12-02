@@ -213,9 +213,28 @@
 
                 output.innerHTML += '<div class="success"><br><strong>Advanced tests completed successfully!</strong></div>';
 
+                const ptr = instance.exports.main();
+                const main = instance.exports.getInt(ptr);
+                output.innerHTML += `<div class="success">Main run without errors: ${main} (expected )</div>`;
             } catch (error) {
-                output.innerHTML += `<div class="error">Advanced test error: ${error.message}</div>`;
-                console.error('Advanced test error:', error);
+                console.error('Full error details:', error);
+        console.error('Error stack:', error.stack);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        
+        // Check for WebAssembly compilation/instantiation errors
+        if (error instanceof WebAssembly.CompileError) {
+            console.error('WebAssembly CompileError:', error);
+            output.innerHTML += `<div class="error">Compile Error: ${error.message}</div>`;
+        } else if (error instanceof WebAssembly.LinkError) {
+            console.error('WebAssembly LinkError:', error);
+            output.innerHTML += `<div class="error">Link Error: ${error.message}</div>`;
+        } else if (error instanceof WebAssembly.RuntimeError) {
+            console.error('WebAssembly RuntimeError:', error);
+            output.innerHTML += `<div class="error">Runtime Error: ${error.message}</div>`;
+        } else {
+            output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        }
             }
         }
 

@@ -23,7 +23,7 @@ public class Translator {
         CodeGenerator2 c = new CodeGenerator2(program);
         result.append(c.translate());
 
-        result.append(")");
+        result.append("(export \"main\" (func $main.main))\n)");
 
         return result;
     }

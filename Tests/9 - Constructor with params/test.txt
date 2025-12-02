@@ -1,6 +1,6 @@
 class Point is
-    var x : Integer
-    var y : Integer
+    var x : Integer(0)
+    var y : Integer(0)
 
     this(a: Integer, b: Integer) is
         x := a;
@@ -8,8 +8,9 @@ class Point is
     end
 end
 
-class Tester is
-    this() is
+class Main is
+    method main() : Integer is
         var p : Point(Integer(5), Integer(2));
+        return p.y;
     end
 end
